@@ -1,0 +1,8 @@
+name: UltimateTracker
+version: '${project.version}'
+main: fr.yronusa.ultimatetracker.UltimateTracker
+api-version: '1.19'
+commands:
+  ut:
+    description: prout.
+    permission: ut.use
