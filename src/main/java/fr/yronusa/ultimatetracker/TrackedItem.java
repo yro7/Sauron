@@ -8,24 +8,25 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.util.io.BukkitObjectOutputStream;
+import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
 
+import java.io.ByteArrayOutputStream;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 public class TrackedItem {
-
-
-    public List<Inventory> lastInventories;
-
+    public List<InventoryLocation> lastInventories;
     public ItemMutable item;
     public UUID originalID;
     public String lastUpdate; // Last update of the item at format YYYY.MM.DD.hh.mm
 
 
-    public TrackedItem(ItemMutable item, Inventory inv, List<Inventory> lastInv, int inventoryPlace, UUID originalID, String date) {
+    public TrackedItem(ItemMutable item, List<InventoryLocation> lastInv, UUID originalID, String date) {
         this.item = item;
         this.lastInventories = lastInv;
         this.originalID = originalID;
@@ -33,12 +34,25 @@ public class TrackedItem {
     }
 
 
-    public void changeInventory(Inventory inv){
-        this.lastInventory = this.inventory;
-        this.inventory = inv;
+    public void changeInventory(InventoryLocation inv){
+        List<InventoryLocation> lastInventories = this.getLastInventories();
+        lastInventories.add(inv);
+        if(lastInventories.size() > UltimateTracker.getInstance().inventoryListLength){
+            lastInventories.remove(0);
+        }
     }
 
+    public List<InventoryLocation> getLastInventories() {
+        return lastInventories;
+    }
 
+    public UUID getOriginalID() {
+        return originalID;
+    }
+
+    public String getLastUpdate() {
+        return lastUpdate;
+    }
 
     public ItemStack getItem() {
         return this.item.item;
@@ -48,59 +62,75 @@ public class TrackedItem {
         return this.item;
     }
 
-
-
-    public Inventory getInventory() {
-        return this.inventory;
+    public Inventory getInventory(){
+        return this.getItemMutable().getInventory();
     }
 
-    public int getPlace() {
-        return this.inventoryPlace;
-    }
+    public TrackedItem startTracking(ItemMutable item){
+        if(item.hasTrackingID()){
+            System.out.println("[ULTIMATE TRACKER] Error: The item is already tracked.");
+            return null;
+        }
 
-    public void setOriginalID(String id) {
-        Inventory inv = this.getInventory();
-        ItemStack i = this.getItem();
-
-        SafeNBT nbt = SafeNBT.get(i);
-        nbt.setString("ut_originalID", id);
-
-        ItemStack i2 = nbt.apply(i);
-        this.item = i2;
-        inv.setItem(this.inventoryPlace, i2);
-    }
-
-    public void setTrackingID(String id) {
-        Inventory inv = this.getInventory();
-        ItemStack i = this.getItem();
-
-        SafeNBT nbt = SafeNBT.get(i);
-        nbt.setString("ut_trackingID", id);
-
-        ItemStack i2 = nbt.apply(i);
-        this.item = i2;
-        inv.setItem(this.inventoryPlace, i2);
+        else{
+            UUID originalID = UUID.randomUUID();
+            item.setTrackable(originalID);
+            TrackedItem trackedItem = new TrackedItem(item, new ArrayList<InventoryLocation>(),originalID, this.getlastUpdate());
+            Database.add(trackedItem);
+            return trackedItem;
+        }
     }
 
 
-    public boolean equals(TrackedItem i){
-        return (i.getOriginalUUID() == this.getOriginalUUID()
-                && i.last().equals(this.getTrackingUUID()));
+    public boolean isDatedBeforeThan(String date){
+        String format = "yyyy.MM.dd.HH.mm";
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(format);
+        LocalDateTime itemDate = LocalDateTime.parse(this.getlastUpdate(), formatter);
+        LocalDateTime otherDate = LocalDateTime.parse(date, formatter);
+        return itemDate.isBefore(otherDate);
     }
 
-    public boolean instanceOf(TrackedItem i) {
-        UUID trackingA = this.getTrackingUUID();
-        UUID trackingB = i.getTrackingUUID();
-        return (i.getOriginalUUID() == this.getOriginalUUID()
-                && Database.trackingInstance(trackingA, trackingB));
+    public String getlastUpdate(){
+        SafeNBT nbt = SafeNBT.get(this.getItem());
+        if(nbt.hasKey("ut_date")){
+            return nbt.getString("ut_date");
+        }
+        else{
+            System.out.println("[ULTIMATE TRACKER] Error: the item isn't tracked.");
+        }
+
+        return null;
     }
 
-    public static void addID(ItemStack i){
-        if(is)
-
+    public String getBase64(){
+        return itemStackArrayToBase64(new ItemStack[]{this.getItem()});
     }
 
- /**  private void antiDupeCheck(String s) {
+
+
+    public static String itemStackArrayToBase64(ItemStack[] items) throws IllegalStateException {
+        try {
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            BukkitObjectOutputStream dataOutput = new BukkitObjectOutputStream(outputStream);
+
+            // Write the size of the inventory
+            dataOutput.writeInt(items.length);
+
+            // Save every element in the list
+            for (int i = 0; i < items.length; i++) {
+                dataOutput.writeObject(items[i]);
+            }
+
+            // Serialize that array
+            dataOutput.close();
+            return Base64Coder.encodeLines(outputStream.toByteArray());
+        } catch (Exception e) {
+            throw new IllegalStateException("Unable to save item stacks.", e);
+        }
+    }
+
+
+    /**  private void antiDupeCheck(String s) {
         FileConfiguration config  = UltimateTracker.getInstance().getConfig();
         boolean enabled = Boolean.parseBoolean(config.getString("database.enabled"));
         if(s.equals("destruction") && enabled){

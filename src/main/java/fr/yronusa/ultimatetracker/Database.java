@@ -20,11 +20,6 @@ import java.util.concurrent.CompletableFuture;
 
 public class Database {
 
-
-    public static boolean trackingInstance(UUID a, UUID b){
-        return a.equals(b);
-    }
-/**
     public static FileConfiguration config = UltimateTracker.getInstance().getConfig();
     public static String host = config.getString("database.host");
     public static int port = config.getInt("database.port");
@@ -34,6 +29,58 @@ public class Database {
     public static String jdbcURL = "jdbc:mysql://" + host + ":" + port + "/" + databaseName +
             "?useSSL=false&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=Europe/Paris";
 
+    public static MysqlDataSource getDataSource() throws SQLException {
+        MysqlDataSource dataSource = new MysqlConnectionPoolDataSource();
+        dataSource.setServerName(host);
+        dataSource.setPort(port);
+        dataSource.setDatabaseName(databaseName);
+        dataSource.setUser(username);
+        dataSource.setPassword(password);
+        dataSource.setServerTimezone(TimeZone.getDefault().getID());
+
+        return dataSource;
+    }
+
+    public static void add(TrackedItem trackedItem) {
+        String itemBase64 = trackedItem.getBase64();
+        MysqlDataSource dataSource = null;
+
+        try {
+            dataSource = getDataSource();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        String sqlAddRow = "INSERT INTO TRACKED_ITEMS (UUID, ITEMBASE64, LAST_INVENTORIES, IS_BLACKLISTED)\n" +
+                "VALUES (" + trackedItem.getOriginalID() + "," + itemBase64 + "," + trackedItem.getLastInventories().toString() +", 0);\n";
+
+        MysqlDataSource finalDataSource = dataSource;
+        Bukkit.getScheduler().runTaskAsynchronously(UltimateTracker.getInstance(), new Runnable() {
+            @Override
+            public void run() {
+
+                Connection conn = null;
+                try {
+                    conn = finalDataSource.getConnection();
+                    Statement stmt = conn.createStatement();
+                    int i = stmt.executeUpdate(sqlAddRow);
+                    if (i > 0) {
+                        System.out.println("ROW INSERTED");
+                    } else {
+                        System.out.println("ROW NOT INSERTED");
+                    }
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+
+            }
+        });
+
+
+    }
+
+
+/**
 
     public static List<TrackedItem> getTrackedItems(int a, int b) throws SQLException {
         // Gets item from A to B in the dtb
@@ -128,35 +175,6 @@ public class Database {
         return savedItems;
     }
 
-    public static void saveItem(ItemStack i) throws SQLException {
-        String itemBase64 = ItemSaver.itemStackToBase64(i);
-        MysqlDataSource dataSource = getDataSource();
-        String sqlAddRow = "INSERT INTO SAVED_ITEMS (itemBase64) " +
-                "VALUES ('" + itemBase64 + "');";
-        Bukkit.getScheduler().runTaskAsynchronously(UltimateTracker.getInstance(), new Runnable() {
-            @Override
-            public void run() {
-
-                Connection conn = null;
-                try {
-                    conn = dataSource.getConnection();
-                    Statement stmt = conn.createStatement();
-                    int i = stmt.executeUpdate(sqlAddRow);
-                    if (i > 0) {
-                        System.out.println("ROW INSERTED");
-                    } else {
-                        System.out.println("ROW NOT INSERTED");
-                    }
-                } catch (SQLException e) {
-                    throw new RuntimeException(e);
-                }
-
-                return null;
-            }
-        });
-
-
-    }
 
 
     public static void createDatabase() throws SQLException {

@@ -27,7 +27,7 @@ public class Listener implements org.bukkit.event.Listener {
         ItemStack[] i = new ItemStack[]{e.getPlayer().getInventory().getItemInMainHand()};
         if(i[0].getAmount() != 0){
             System.out.println(i);
-            base64 = ItemSaver.itemStackArrayToBase64(i);
+           // base64 = ItemSaver.itemStackArrayToBase64(i);
             System.out.println(base64.length());
 
 

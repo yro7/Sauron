@@ -10,6 +10,7 @@ public class DupliChecker implements Listener {
     @EventHandler
     public void onContainerOpen(InventoryOpenEvent e){
         ItemStack[] contents = e.getInventory().getStorageContents();
+
     }
 
 
@@ -19,6 +20,8 @@ public class DupliChecker implements Listener {
                 return true;
             }
         }
-
+        return false;
     }
+
+
 }

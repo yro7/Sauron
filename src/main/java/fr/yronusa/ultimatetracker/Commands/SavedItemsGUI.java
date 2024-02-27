@@ -30,17 +30,17 @@ public class SavedItemsGUI extends Gui {
 
 
         // BUTTONS: page precedente, page suivante
-        List<ItemStack> items;
+        List<ItemStack> items = null;
 
         try{
-            items = Database.getSavedItems(a, b);
+         //   items = Database.getSavedItems(a, b);
         }
         catch(Exception e){
             System.out.println("prout error");
             return;
         }
 
-        System.out.println(items);
+       // System.out.println(items);
 
         Iterator<ItemStack> iterator = items.iterator();
 

@@ -1,7 +1,6 @@
 package fr.yronusa.ultimatetracker.Commands;
 
 import fr.yronusa.ultimatetracker.Database;
-import fr.yronusa.ultimatetracker.ItemNBT;
 import fr.yronusa.ultimatetracker.ItemSaver;
 import fr.yronusa.ultimatetracker.TrackedItem;
 import org.bukkit.Material;
@@ -75,7 +74,7 @@ public class Command implements CommandExecutor {
         if(i.getType() != Material.AIR){
 
             try{
-                Database.saveItem(i);
+                //Database.saveItem(i);
                 p.sendMessage("§7* §aObjet enregistré avec succès !");
             }
 
@@ -119,19 +118,6 @@ public class Command implements CommandExecutor {
                 p.sendMessage("§7* §cVeuillez spécifier ''saved'' ou ''tracked''.");
                 break;
         }
-    }
-
-    public TrackedItem startTracking(ItemStack item, Inventory inv, int inventoryPlace) {
-
-        ItemNBT itemNbt = new ItemNBT(item);
-        if(itemNbt.hasTrackingID() ){
-
-            return null;
-        }
-
-        UUID newID = null;
-
-        return new TrackedItem(item, inv, inv,inventoryPlace, newID, newID);
     }
 
 }
