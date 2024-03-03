@@ -26,6 +26,8 @@ public class TrackedItem {
     public String lastUpdate; // Last update of the item at format YYYY.MM.DD.hh.mm
 
 
+
+
     public TrackedItem(ItemMutable item, List<InventoryLocation> lastInv, UUID originalID, String date) {
         this.item = item;
         this.lastInventories = lastInv;
@@ -33,6 +35,24 @@ public class TrackedItem {
         this.lastUpdate = date;
     }
 
+    public static boolean shouldBeTrack(ItemMutable i) {
+        if(i == null) return false;
+        System.out.println("SHOULD BE TRACKABLE ?");
+        boolean res = (i.getItem().getAmount() == 1
+                && i.getItem().getMaxStackSize() == 1
+                && i.getItem().hasItemMeta()
+                && !i.hasTrackingID()
+
+        );
+        System.out.println("res");
+        return res;
+
+
+    }
+
+    public boolean isDuplicated(){
+        return this.isDatedBeforeThan(Database.getLastUpdate(this));
+    }
 
     public void changeInventory(InventoryLocation inv){
         List<InventoryLocation> lastInventories = this.getLastInventories();
@@ -50,9 +70,6 @@ public class TrackedItem {
         return originalID;
     }
 
-    public String getLastUpdate() {
-        return lastUpdate;
-    }
 
     public ItemStack getItem() {
         return this.item.item;
@@ -62,11 +79,7 @@ public class TrackedItem {
         return this.item;
     }
 
-    public Inventory getInventory(){
-        return this.getItemMutable().getInventory();
-    }
-
-    public TrackedItem startTracking(ItemMutable item){
+    public static TrackedItem startTracking(ItemMutable item){
         if(item.hasTrackingID()){
             System.out.println("[ULTIMATE TRACKER] Error: The item is already tracked.");
             return null;
@@ -75,8 +88,11 @@ public class TrackedItem {
         else{
             UUID originalID = UUID.randomUUID();
             item.setTrackable(originalID);
-            TrackedItem trackedItem = new TrackedItem(item, new ArrayList<InventoryLocation>(),originalID, this.getlastUpdate());
-            Database.add(trackedItem);
+            TrackedItem trackedItem = new TrackedItem(item,
+                    new ArrayList<InventoryLocation>(),originalID, item.getLastUpdate());
+            if(UltimateTracker.database) {
+                Database.add(trackedItem);
+            }
             return trackedItem;
         }
     }
@@ -85,25 +101,19 @@ public class TrackedItem {
     public boolean isDatedBeforeThan(String date){
         String format = "yyyy.MM.dd.HH.mm";
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(format);
-        LocalDateTime itemDate = LocalDateTime.parse(this.getlastUpdate(), formatter);
+        LocalDateTime itemDate = LocalDateTime.parse(this.getLastUpdate(), formatter);
         LocalDateTime otherDate = LocalDateTime.parse(date, formatter);
         return itemDate.isBefore(otherDate);
     }
 
-    public String getlastUpdate(){
-        SafeNBT nbt = SafeNBT.get(this.getItem());
-        if(nbt.hasKey("ut_date")){
-            return nbt.getString("ut_date");
-        }
-        else{
-            System.out.println("[ULTIMATE TRACKER] Error: the item isn't tracked.");
-        }
 
-        return null;
-    }
 
     public String getBase64(){
         return itemStackArrayToBase64(new ItemStack[]{this.getItem()});
+    }
+
+    public String getLastUpdate(){
+        return this.getItemMutable().getLastUpdate();
     }
 
 

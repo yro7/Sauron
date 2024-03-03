@@ -13,13 +13,15 @@ public final class UltimateTracker extends JavaPlugin {
         return UltimateTracker.instance;
     }
 
+    static boolean database = false;
+
     // Defines the maximum length of last inventories list.
     public int inventoryListLength;
     @Override
     public void onEnable() {
         // Plugin startup logic
         UltimateTracker.instance = this;
-        new InventoryAPI(this).init();
+      //  new InventoryAPI(this).init();
         saveDefaultConfig();
         registerEvents();
         registerCommands();

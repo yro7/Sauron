@@ -1,6 +1,7 @@
 package fr.yronusa.ultimatetracker.Commands;
 
 import fr.yronusa.ultimatetracker.Database;
+import fr.yronusa.ultimatetracker.ItemMutable;
 import fr.yronusa.ultimatetracker.ItemSaver;
 import fr.yronusa.ultimatetracker.TrackedItem;
 import org.bukkit.Material;
@@ -35,6 +36,8 @@ public class Command implements CommandExecutor {
            commandSender.sendMessage("§7* §a/ut list saved: §7Affiche la liste des objets enregistrés.");
            commandSender.sendMessage("§7* §a/ut list tracked: §7Affiche la liste des objets traqués.");
            commandSender.sendMessage("");
+           commandSender.sendMessage("§7* §a/ut track: §7Traque l'objet entre les mains.");
+           commandSender.sendMessage("");
            commandSender.sendMessage("§7* §a/ut stop: §7Arrête ou remet en route l'update automatique des yci_id 'blank'. Utile pour du debug ou de l'édition d'items customs.");
            commandSender.sendMessage("");
            commandSender.sendMessage("§7* §a/ut (stop): §7Arrête ou remet en route l'update automatique des yci_id 'blank'. Utile pour du debug ou de l'édition d'items customs.");
@@ -62,10 +65,49 @@ public class Command implements CommandExecutor {
             case "quarantines":
                 quarantines(p);
                 break;
+            case "track":
+                track(p);
+                break;
 
         }
 
         return true;
+    }
+
+    private void track(Player p) {
+
+        ItemStack i = p.getInventory().getItemInMainHand();
+        if(i.getType() != Material.AIR){
+
+            try{
+                //Database.saveItem(i);
+                ItemMutable item = new ItemMutable(p);
+
+                if(item.hasTrackingID()){
+                    p.sendMessage("§7* §cL'objet est déjà traqué !");
+                    return;
+                }
+
+                if(item.getItem().getAmount() > 1){
+                    p.sendMessage("§7* §cVeuillez déstacker l'objet avant de le traquer.");
+                    return;
+                }
+
+
+                TrackedItem.startTracking(item);
+                p.sendMessage("§7* §aObjet traqué avec succès !");
+            }
+
+            catch(Exception e){
+                e.printStackTrace();
+                p.sendMessage("§7* §cERREUR: L'objet n'a pas correctement pu être traqué.");
+            }
+
+        }
+
+        else{
+            p.sendMessage("§7* §cVous devez tenir un objet en main!");
+        }
     }
 
     private void save(Player p) {
@@ -109,7 +151,7 @@ public class Command implements CommandExecutor {
         }
         switch(args[1]){
             case "saved":
-                new SavedItemsGUI(p, 0).open();
+              //  new SavedItemsGUI(p, 0).open();
                 break;
             case "tracked":
                // new TrackedItemsGUI(p, 0).open();

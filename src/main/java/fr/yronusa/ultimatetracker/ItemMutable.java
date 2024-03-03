@@ -1,6 +1,8 @@
 package fr.yronusa.ultimatetracker;
 
 import com.jojodmo.safeNBT.api.SafeNBT;
+import org.bukkit.Material;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.io.BukkitObjectOutputStream;
@@ -26,6 +28,22 @@ public class ItemMutable {
         this.inventory = inventory;
         this.inventoryPlace = place;
     }
+    public String getLastUpdate(){
+        SafeNBT nbt = SafeNBT.get(this.getItem());
+        if(nbt.hasKey("ut_date")){
+            return nbt.getString("ut_date");
+        }
+        else{
+            System.out.println("[ULTIMATE TRACKER] Error: the item isn't tracked.");
+        }
+
+        return null;
+    }
+    public ItemMutable(Player p) {
+        this.item = p.getInventory().getItemInMainHand();
+        this.inventory = p.getInventory();
+        this.inventoryPlace = p.getInventory().getHeldItemSlot();
+    }
 
     public ItemStack getItem() {
         return item;
@@ -42,12 +60,12 @@ public class ItemMutable {
 
     public boolean getID(){
         SafeNBT nbt = SafeNBT.get(this.item);
-        return nbt.hasKey("ut_trackingID");
+        return nbt.hasKey("ut_id");
     }
 
     public boolean hasTrackingID(){
         SafeNBT nbt = SafeNBT.get(this.item);
-        return nbt.hasKey("ut_trackingID");
+        return nbt.hasKey("ut_id");
     }
 
     public void setTrackable(UUID id){
@@ -59,8 +77,8 @@ public class ItemMutable {
             ItemStack i = this.getItem();
             SafeNBT nbt = SafeNBT.get(i);
             nbt.setString("ut_id", id.toString());
-            this.updateDate();
             nbt.setString("ut_date", this.updateDate());
+            this.update(nbt.apply(i));
         }
 
 

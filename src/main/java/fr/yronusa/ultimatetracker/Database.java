@@ -2,21 +2,10 @@ package fr.yronusa.ultimatetracker;
 
 import com.mysql.cj.jdbc.MysqlConnectionPoolDataSource;
 import com.mysql.cj.jdbc.MysqlDataSource;
-import jdk.vm.ci.meta.ErrorData;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
-
-import javax.sound.midi.Track;
-import java.io.IOException;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.TimeZone;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 public class Database {
 
@@ -43,7 +32,7 @@ public class Database {
 
     public static void add(TrackedItem trackedItem) {
         String itemBase64 = trackedItem.getBase64();
-        MysqlDataSource dataSource = null;
+        MysqlDataSource dataSource;
 
         try {
             dataSource = getDataSource();
@@ -51,9 +40,11 @@ public class Database {
             throw new RuntimeException(e);
         }
 
-        String sqlAddRow = "INSERT INTO TRACKED_ITEMS (UUID, ITEMBASE64, LAST_INVENTORIES, IS_BLACKLISTED)\n" +
-                "VALUES (" + trackedItem.getOriginalID() + "," + itemBase64 + "," + trackedItem.getLastInventories().toString() +", 0);\n";
+        String base = "INSERT INTO TRACKED_ITEMS (UUID, ITEMBASE64, LAST_UPDATE, LAST_INVENTORIES, IS_BLACKLISTED)\n" +
+                "VALUES (" + trackedItem.getOriginalID() + "," + itemBase64 + "," + trackedItem.getLastUpdate() +"," + trackedItem.getLastInventories().toString() +", 0);\n";
+        String sqlAddRow = base.replaceAll("\\n$", "");
 
+        System.out.println(sqlAddRow);
         MysqlDataSource finalDataSource = dataSource;
         Bukkit.getScheduler().runTaskAsynchronously(UltimateTracker.getInstance(), new Runnable() {
             @Override
@@ -73,6 +64,7 @@ public class Database {
                     throw new RuntimeException(e);
                 }
 
+
             }
         });
 
@@ -80,6 +72,43 @@ public class Database {
     }
 
 
+    public static String getLastUpdate(TrackedItem trackedItem){
+        MysqlDataSource dataSource = null;
+        try {
+            dataSource = getDataSource();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        String sqlSelectTrackedItem= "SELECT * FROM SAVED_ITEMS WHERE UUID = " + trackedItem.getOriginalID().toString();
+        MysqlDataSource finalDataSource = dataSource;
+
+        final String[] res = new String[0];
+        Bukkit.getScheduler().runTaskAsynchronously(UltimateTracker.getInstance(), new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Connection conn = finalDataSource.getConnection();
+                    PreparedStatement ps = conn.prepareStatement(sqlSelectTrackedItem);
+                    ResultSet rs = ps.executeQuery(); {
+                        while (rs.next()) {
+                            res[0] = rs.getString("LAST_UPDATE");
+                        }
+
+
+                    }
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                    // handle the exception
+                }
+            }
+
+
+        });
+
+
+
+        return res[0];
+    }
 /**
 
     public static List<TrackedItem> getTrackedItems(int a, int b) throws SQLException {

@@ -6,6 +6,7 @@ import org.bukkit.entity.Item;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerBedEnterEvent;
 import org.bukkit.event.player.PlayerBedLeaveEvent;
+import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -41,5 +42,15 @@ public class Listener implements org.bukkit.event.Listener {
         System.out.println(base64);
         e.getPlayer().getInventory().setItemInMainHand(i[0]);
 
+    }
+
+    @EventHandler
+    public void onHandlingItem(PlayerItemHeldEvent e){
+        ItemMutable i = new ItemMutable(e.getPlayer());
+        if(TrackedItem.shouldBeTrack(i)){
+            ItemMutable item = new ItemMutable(e.getPlayer());
+            TrackedItem.startTracking(item);
+
+        }
     }
 }
