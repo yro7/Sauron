@@ -101,6 +101,9 @@ public class ItemMutable {
         ItemStack i = this.getItem();
         SafeNBT nbt = SafeNBT.get(i);
         nbt.setString("ut_date", formattedDateTime);
+
+
+
         this.update(nbt.apply(i));
         return formattedDateTime;
     }

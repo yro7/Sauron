@@ -1,9 +1,11 @@
 package fr.yronusa.ultimatetracker.Commands;
 
 import fr.yronusa.ultimatetracker.Database;
+import fr.yronusa.ultimatetracker.Event.ItemStartTrackingEvent;
 import fr.yronusa.ultimatetracker.ItemMutable;
 import fr.yronusa.ultimatetracker.ItemSaver;
 import fr.yronusa.ultimatetracker.TrackedItem;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -92,7 +94,6 @@ public class Command implements CommandExecutor {
                     p.sendMessage("§7* §cVeuillez déstacker l'objet avant de le traquer.");
                     return;
                 }
-
 
                 TrackedItem.startTracking(item);
                 p.sendMessage("§7* §aObjet traqué avec succès !");

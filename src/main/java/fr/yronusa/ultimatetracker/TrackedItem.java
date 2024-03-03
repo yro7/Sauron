@@ -1,6 +1,8 @@
 package fr.yronusa.ultimatetracker;
 
 import com.jojodmo.safeNBT.api.SafeNBT;
+import fr.yronusa.ultimatetracker.Event.ItemStartTrackingEvent;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -91,9 +93,14 @@ public class TrackedItem {
             item.setTrackable(originalID);
             TrackedItem trackedItem = new TrackedItem(item,
                     new ArrayList<InventoryLocation>(),originalID, item.getLastUpdate());
+
             if(UltimateTracker.database) {
                 Database.add(trackedItem);
             }
+
+            ItemStartTrackingEvent trackEvent = new ItemStartTrackingEvent(trackedItem);
+            Bukkit.getPluginManager().callEvent(trackEvent);
+
             return trackedItem;
         }
     }
