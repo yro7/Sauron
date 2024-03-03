@@ -36,15 +36,16 @@ public class TrackedItem {
     }
 
     public static boolean shouldBeTrack(ItemMutable i) {
-        if(i == null) return false;
+        if(i.getItem() == null) return false;
+        if(i.getItem().getAmount() != 1) return false;
+
+
         System.out.println("SHOULD BE TRACKABLE ?");
-        boolean res = (i.getItem().getAmount() == 1
-                && i.getItem().getMaxStackSize() == 1
+        boolean res = (i.getItem().getMaxStackSize() == 1
                 && i.getItem().hasItemMeta()
                 && !i.hasTrackingID()
-
         );
-        System.out.println("res");
+        System.out.println(res);
         return res;
 
 
