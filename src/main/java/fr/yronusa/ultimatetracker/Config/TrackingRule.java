@@ -43,8 +43,11 @@ public class TrackingRule {
         return new Predicate<ItemStack>() {
             @Override
             public boolean test(ItemStack itemStack) {
-                itemStack.addItemFlags();
-                return true;
+                return isOfMaterial(itemStack, rule.materials)
+                        && hasFlag(itemStack, rule.flags)
+                        && hasNbt(itemStack, rule.nbt)
+                        && hasKeyValueNbt(itemStack, rule.nbtEquals)
+                        && containsString(itemStack, rule.contains);
             }
         };
     }
@@ -67,7 +70,7 @@ public class TrackingRule {
             if(name.contains(s)) return true;
         }
 
-        return true;
+        return false;
     }
 
     public static boolean isOfMaterial(ItemStack i, List<Material> materials){
@@ -92,17 +95,14 @@ public class TrackingRule {
     public static boolean hasKeyValueNbt(ItemStack i, HashMap<String,String> nbt){
         SafeNBT itemNbt = SafeNBT.get(i);
         for(String s : nbt.keySet()){
-            if(!itemNbt.hasKey(s) || )
+            if(!itemNbt.hasKey(s) || getKey(itemNbt, s).toString().equals(nbt.get(s))) return false;
         }
 
         return true;
     }
 
 
-
-
-
-    public static Object getGoodKey(SafeNBT nbt, String key) {
+    public static Object getKey(SafeNBT nbt, String key) {
         Object res;
         try {
             res = nbt.getString(key);
