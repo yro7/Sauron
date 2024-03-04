@@ -1,5 +1,6 @@
 package fr.yronusa.ultimatetracker;
 
+import fr.yronusa.ultimatetracker.Event.ItemUpdateDateEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Item;
@@ -47,10 +48,22 @@ public class Listener implements org.bukkit.event.Listener {
     @EventHandler
     public void onHandlingItem(PlayerItemHeldEvent e){
         ItemMutable i = new ItemMutable(e.getPlayer());
+
+        if(i.hasTrackingID()){
+            TrackedItem trackedItem = new TrackedItem(i);
+            trackedItem.update();
+        }
+
         if(TrackedItem.shouldBeTrack(i)){
             ItemMutable item = new ItemMutable(e.getPlayer());
             TrackedItem.startTracking(item);
 
         }
+    }
+
+    @EventHandler
+    public void onUpdate(ItemUpdateDateEvent e){
+        System.out.println("ITEM UPDATE!!! new date:");
+        System.out.println(e.getNewDate());
     }
 }

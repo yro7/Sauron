@@ -1,19 +1,12 @@
 package fr.yronusa.ultimatetracker;
 
 import com.jojodmo.safeNBT.api.SafeNBT;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.util.io.BukkitObjectOutputStream;
-import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
 
-import java.io.ByteArrayOutputStream;
-import java.text.SimpleDateFormat;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
 import java.util.UUID;
 
 public class ItemMutable {
@@ -58,9 +51,9 @@ public class ItemMutable {
     }
 
 
-    public boolean getID(){
+    public UUID getID(){
         SafeNBT nbt = SafeNBT.get(this.item);
-        return nbt.hasKey("ut_id");
+        return UUID.fromString(nbt.getString("ut_id"));
     }
 
     public boolean hasTrackingID(){
@@ -68,7 +61,7 @@ public class ItemMutable {
         return nbt.hasKey("ut_id");
     }
 
-    public void setTrackable(UUID id){
+    public void setTrackable(UUID id, String newDate){
         if(this.hasTrackingID()){
             return;
         }
@@ -77,7 +70,7 @@ public class ItemMutable {
             ItemStack i = this.getItem();
             SafeNBT nbt = SafeNBT.get(i);
             nbt.setString("ut_id", id.toString());
-            nbt.setString("ut_date", this.updateDate());
+            nbt.setString("ut_date", newDate);
             this.update(nbt.apply(i));
         }
 
@@ -93,19 +86,12 @@ public class ItemMutable {
         inv.setItem(this.getInventoryPlace(), newItem);
     }
 
-    public String updateDate(){
-        String format = "yyyy.MM.dd.HH.mm";
-        LocalDateTime currentDateTime = LocalDateTime.now();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(format);
-        String formattedDateTime = currentDateTime.format(formatter);
+    public String updateDate(String newDate){
         ItemStack i = this.getItem();
         SafeNBT nbt = SafeNBT.get(i);
-        nbt.setString("ut_date", formattedDateTime);
-
-
-
+        nbt.setString("ut_date", newDate);
         this.update(nbt.apply(i));
-        return formattedDateTime;
+        return newDate;
     }
 
 

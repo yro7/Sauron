@@ -5,7 +5,9 @@ import com.mysql.cj.jdbc.MysqlDataSource;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import java.sql.*;
+import java.util.List;
 import java.util.TimeZone;
+import java.util.UUID;
 
 public class Database {
 
@@ -72,14 +74,14 @@ public class Database {
     }
 
 
-    public static String getLastUpdate(TrackedItem trackedItem){
+    public static String getLastUpdate(UUID uuid){
         MysqlDataSource dataSource = null;
         try {
             dataSource = getDataSource();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-        String sqlSelectTrackedItem= "SELECT * FROM SAVED_ITEMS WHERE UUID = " + trackedItem.getOriginalID().toString();
+        String sqlSelectTrackedItem= "SELECT * FROM SAVED_ITEMS WHERE UUID = " + uuid.toString();
         MysqlDataSource finalDataSource = dataSource;
 
         final String[] res = new String[0];
@@ -109,6 +111,46 @@ public class Database {
 
         return res[0];
     }
+    public static List<InventoryLocation> getLastInventories(UUID uuid){
+        MysqlDataSource dataSource = null;
+        try {
+            dataSource = getDataSource();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        String sqlSelectTrackedItem= "SELECT * FROM SAVED_ITEMS WHERE UUID = " + uuid.toString();
+        MysqlDataSource finalDataSource = dataSource;
+
+        final String[] res = new String[0];
+        Bukkit.getScheduler().runTaskAsynchronously(UltimateTracker.getInstance(), new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Connection conn = finalDataSource.getConnection();
+                    PreparedStatement ps = conn.prepareStatement(sqlSelectTrackedItem);
+                    ResultSet rs = ps.executeQuery(); {
+                        while (rs.next()) {
+                            res[0] = rs.getString("LAST_UPDATE");
+                        }
+
+
+                    }
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                    // handle the exception
+                }
+            }
+
+
+        });
+        return null;
+    }
+
+
+    public static void update(UUID id, String date){
+
+    }
+
 /**
 
     public static List<TrackedItem> getTrackedItems(int a, int b) throws SQLException {

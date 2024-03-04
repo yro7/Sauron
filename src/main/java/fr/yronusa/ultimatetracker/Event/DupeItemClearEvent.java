@@ -10,7 +10,6 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
-import javax.sound.midi.Track;
 import java.util.UUID;
 
 public class DupeItemClearEvent extends Event implements Cancellable {
@@ -38,8 +37,8 @@ public class DupeItemClearEvent extends Event implements Cancellable {
         return HANDLERS_LIST;
     }
 
-    public TrackedItem getTrackedItem() {
-        return this.item;
+    public UUID getTrackedItem() {
+        return this.item.getOriginalID();
     }
 
     public ItemStack getItemStack(){

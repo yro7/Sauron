@@ -5,6 +5,8 @@ import mc.obliviate.inventory.InventoryAPI;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.sql.SQLException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public final class UltimateTracker extends JavaPlugin {
 
@@ -28,6 +30,13 @@ public final class UltimateTracker extends JavaPlugin {
         verifyDatabase();
 
 
+    }
+
+    public static String getActualDate(){
+        String format = "yyyy.MM.dd.HH.mm";
+        LocalDateTime currentDateTime = LocalDateTime.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(format);
+        return currentDateTime.format(formatter);
     }
 
     private void verifyDatabase() {

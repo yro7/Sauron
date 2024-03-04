@@ -2,6 +2,7 @@ package fr.yronusa.ultimatetracker;
 
 import com.jojodmo.safeNBT.api.SafeNBT;
 import fr.yronusa.ultimatetracker.Event.ItemStartTrackingEvent;
+import fr.yronusa.ultimatetracker.Event.ItemUpdateDateEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -22,19 +23,25 @@ import java.util.List;
 import java.util.UUID;
 
 public class TrackedItem {
-    public List<InventoryLocation> lastInventories;
+
     public ItemMutable item;
     public UUID originalID;
     public String lastUpdate; // Last update of the item at format YYYY.MM.DD.hh.mm
 
-
-
-
-    public TrackedItem(ItemMutable item, List<InventoryLocation> lastInv, UUID originalID, String date) {
+    // Used to create a new Tracked Item.
+    public TrackedItem(ItemMutable item, UUID originalID, String date) {
         this.item = item;
-        this.lastInventories = lastInv;
         this.originalID = originalID;
         this.lastUpdate = date;
+    }
+
+
+    // Used to get the associated TrackedItem from an ItemMutable directly.
+    public TrackedItem(ItemMutable item) {
+        this.item = item;
+        this.originalID = item.getID();
+        this.lastUpdate = item.getLastUpdate();
+
     }
 
     public static boolean shouldBeTrack(ItemMutable i) {
@@ -54,20 +61,9 @@ public class TrackedItem {
     }
 
     public boolean isDuplicated(){
-        return this.isDatedBeforeThan(Database.getLastUpdate(this));
+        return this.isDatedBeforeThan(Database.getLastUpdate(this.getOriginalID()));
     }
 
-    public void changeInventory(InventoryLocation inv){
-        List<InventoryLocation> lastInventories = this.getLastInventories();
-        lastInventories.add(inv);
-        if(lastInventories.size() > UltimateTracker.getInstance().inventoryListLength){
-            lastInventories.remove(0);
-        }
-    }
-
-    public List<InventoryLocation> getLastInventories() {
-        return lastInventories;
-    }
 
     public UUID getOriginalID() {
         return originalID;
@@ -90,9 +86,8 @@ public class TrackedItem {
 
         else{
             UUID originalID = UUID.randomUUID();
-            item.setTrackable(originalID);
-            TrackedItem trackedItem = new TrackedItem(item,
-                    new ArrayList<InventoryLocation>(),originalID, item.getLastUpdate());
+            item.setTrackable(originalID, UltimateTracker.getActualDate());
+            TrackedItem trackedItem = new TrackedItem(item);
 
             if(UltimateTracker.database) {
                 Database.add(trackedItem);
@@ -103,6 +98,10 @@ public class TrackedItem {
 
             return trackedItem;
         }
+    }
+
+    public InventoryLocation getLastInventories(){
+        return new InventoryLocation();
     }
 
 
@@ -122,6 +121,15 @@ public class TrackedItem {
 
     public String getLastUpdate(){
         return this.getItemMutable().getLastUpdate();
+    }
+
+    public void update(){
+        String newDate = UltimateTracker.getActualDate();
+        ItemUpdateDateEvent updateEvent = new ItemUpdateDateEvent(this, newDate);
+        Bukkit.getPluginManager().callEvent(updateEvent);
+        this.getItemMutable().updateDate(newDate);
+        Database.update(this.originalID, newDate);
+
     }
 
 

@@ -55,7 +55,7 @@ public class DupeDetectedEvent extends Event {
     }
 
     public String getDatabaseLastUpdate(){
-        return Database.getLastUpdate(this.getTrackedItem());
+        return Database.getLastUpdate(this.getTrackedItem().getOriginalID());
     }
 
     public Player getPlayer(){
