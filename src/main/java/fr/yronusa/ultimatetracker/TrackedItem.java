@@ -100,10 +100,6 @@ public class TrackedItem {
         }
     }
 
-    public InventoryLocation getLastInventories(){
-        return new InventoryLocation();
-    }
-
 
     public boolean isDatedBeforeThan(String date){
         String format = "yyyy.MM.dd.HH.mm";
