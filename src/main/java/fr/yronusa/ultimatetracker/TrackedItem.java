@@ -1,6 +1,7 @@
 package fr.yronusa.ultimatetracker;
 
 import com.jojodmo.safeNBT.api.SafeNBT;
+import fr.yronusa.ultimatetracker.Config.TrackingRule;
 import fr.yronusa.ultimatetracker.Event.ItemStartTrackingEvent;
 import fr.yronusa.ultimatetracker.Event.ItemUpdateDateEvent;
 import org.bukkit.Bukkit;
@@ -14,6 +15,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.util.io.BukkitObjectOutputStream;
 import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
 
+import javax.sound.midi.Track;
 import java.io.ByteArrayOutputStream;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
@@ -21,6 +23,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Predicate;
 
 public class TrackedItem {
 
@@ -45,19 +48,11 @@ public class TrackedItem {
     }
 
     public static boolean shouldBeTrack(ItemMutable i) {
-        if(i.getItem() == null) return false;
-        if(i.getItem().getAmount() != 1) return false;
 
-
-        System.out.println("SHOULD BE TRACKABLE ?");
-        boolean res = (i.getItem().getMaxStackSize() == 1
-                && i.getItem().hasItemMeta()
-                && !i.hasTrackingID()
-        );
-        System.out.println(res);
-        return res;
-
-
+        for(TrackingRule rule : UltimateTracker.getTrackingRules()){
+            if(rule.getPredicate().test(i)) return true;
+        }
+        return false;
     }
 
     public boolean isDuplicated(){
