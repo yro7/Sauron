@@ -47,6 +47,7 @@ public class Listener implements org.bukkit.event.Listener {
 
     @EventHandler
     public void onHandlingItem(PlayerItemHeldEvent e){
+        if(e.getPlayer().getInventory().getItemInMainHand().getItemMeta() == null) return;
         ItemMutable i = new ItemMutable(e.getPlayer());
 
         if(i.hasTrackingID()){

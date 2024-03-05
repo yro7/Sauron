@@ -4,3 +4,5 @@ database:
   database: ULTIMATE_TRACKER
   user: root
   password: prout
+
+rules:

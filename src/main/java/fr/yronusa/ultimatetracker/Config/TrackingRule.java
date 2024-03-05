@@ -2,7 +2,9 @@ package fr.yronusa.ultimatetracker.Config;
 
 import com.jojodmo.safeNBT.api.SafeNBT;
 import fr.yronusa.ultimatetracker.ItemMutable;
+import fr.yronusa.ultimatetracker.UltimateTracker;
 import org.bukkit.Material;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 
@@ -10,44 +12,29 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.function.Predicate;
 
-public class TrackingRule {
+public class TrackingRule implements Predicate<ItemStack> {
 
 
     public static List<TrackingRule> getTrackingRulesFromConfig(){
+
+
         return null;
     }
 
+    List<String> contains;
+    List<Material> materials;
+    List<ItemFlag> flags;
+    List<String> nbt;
+    HashMap<String,String> nbtEquals;
 
-    static class Rule {
-        List<String> contains;
-        List<Material> materials;
-        List<ItemFlag> flags;
-        List<String> nbt;
-        HashMap<String,String> nbtEquals;
-    }
-
-    List<Rule> rules;
-
-    public Predicate<ItemMutable> getPredicate(){
-        return null;
-    }
-
-    public TrackingRule(List<Rule> rules) {
-        this.rules = rules;
-    }
-
-    public static Predicate<ItemStack> createRulePredicate(Rule rule) {
-
-        return new Predicate<ItemStack>() {
-            @Override
-            public boolean test(ItemStack itemStack) {
-                return isOfMaterial(itemStack, rule.materials)
-                        && hasFlag(itemStack, rule.flags)
-                        && hasNbt(itemStack, rule.nbt)
-                        && hasKeyValueNbt(itemStack, rule.nbtEquals)
-                        && containsString(itemStack, rule.contains);
-            }
-        };
+    public TrackingRule(List<String> contains, List<Material> materials,
+                        List<ItemFlag> flags, List<String> nbt,
+                        HashMap<String, String> nbtEquals) {
+        this.contains = contains;
+        this.materials = materials;
+        this.flags = flags;
+        this.nbt = nbt;
+        this.nbtEquals = nbtEquals;
     }
 
     public static boolean containsString(ItemStack i, List<String> strings){
@@ -128,4 +115,12 @@ public class TrackingRule {
     }
 
 
+    @Override
+    public boolean test(ItemStack itemStack) {
+        return isOfMaterial(itemStack, materials)
+                && hasFlag(itemStack, this.flags)
+                && hasNbt(itemStack, this.nbt)
+                && hasKeyValueNbt(itemStack, this.nbtEquals)
+                && containsString(itemStack, this.contains);
+    }
 }

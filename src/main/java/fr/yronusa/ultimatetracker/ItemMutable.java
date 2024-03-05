@@ -62,6 +62,7 @@ public class ItemMutable {
     }
 
     public void setTrackable(UUID id, String newDate){
+
         if(this.hasTrackingID()){
             return;
         }
@@ -72,6 +73,7 @@ public class ItemMutable {
             nbt.setString("ut_id", id.toString());
             nbt.setString("ut_date", newDate);
             this.update(nbt.apply(i));
+            System.out.println("item set trackable haha");
         }
 
 

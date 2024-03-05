@@ -48,11 +48,16 @@ public class TrackedItem {
     }
 
     public static boolean shouldBeTrack(ItemMutable i) {
-
-        for(TrackingRule rule : UltimateTracker.getTrackingRules()){
-            if(rule.getPredicate().test(i)) return true;
+        if(i.getItem() != null){
+            return true;
         }
+
         return false;
+        /**
+        for(TrackingRule rule : UltimateTracker.getTrackingRules()){
+            if(rule.test(i.getItem())) return true;
+        }
+        return false;**/
     }
 
     public boolean isDuplicated(){
@@ -69,20 +74,28 @@ public class TrackedItem {
         return this.item.item;
     }
 
+    public List<InventoryLocation> getLastInventories(){
+        return null;
+    }
+
     public ItemMutable getItemMutable() {
         return this.item;
     }
 
     public static TrackedItem startTracking(ItemMutable item){
+
         if(item.hasTrackingID()){
             System.out.println("[ULTIMATE TRACKER] Error: The item is already tracked.");
             return null;
         }
 
         else{
+            System.out.println("starting tracking item...");
             UUID originalID = UUID.randomUUID();
             item.setTrackable(originalID, UltimateTracker.getActualDate());
+            System.out.println("item set tracked cote tracked item, now generating trackeditem");
             TrackedItem trackedItem = new TrackedItem(item);
+            System.out.println("prout");
 
             if(UltimateTracker.database) {
                 Database.add(trackedItem);
