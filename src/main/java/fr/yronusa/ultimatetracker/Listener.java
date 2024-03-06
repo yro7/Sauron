@@ -53,12 +53,12 @@ public class Listener implements org.bukkit.event.Listener {
         if(i.hasTrackingID()){
             TrackedItem trackedItem = new TrackedItem(i);
             trackedItem.update();
+            return;
         }
 
         if(TrackedItem.shouldBeTrack(i)){
             ItemMutable item = new ItemMutable(e.getPlayer());
             TrackedItem.startTracking(item);
-
         }
     }
 

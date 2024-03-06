@@ -7,6 +7,7 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import javax.sound.midi.Track;
+import java.sql.Timestamp;
 import java.util.UUID;
 
 public class ItemStartTrackingEvent extends Event {
@@ -41,7 +42,7 @@ public class ItemStartTrackingEvent extends Event {
         return this.item.getOriginalID();
     }
 
-    public String getLastUpdate(){
+    public Timestamp getLastUpdate(){
         return this.item.getLastUpdate();
     }
 

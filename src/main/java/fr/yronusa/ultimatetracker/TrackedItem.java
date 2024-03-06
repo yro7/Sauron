@@ -1,38 +1,25 @@
 package fr.yronusa.ultimatetracker;
 
-import com.jojodmo.safeNBT.api.SafeNBT;
-import fr.yronusa.ultimatetracker.Config.TrackingRule;
 import fr.yronusa.ultimatetracker.Event.ItemStartTrackingEvent;
 import fr.yronusa.ultimatetracker.Event.ItemUpdateDateEvent;
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.util.io.BukkitObjectOutputStream;
 import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
 
-import javax.sound.midi.Track;
 import java.io.ByteArrayOutputStream;
-import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.UUID;
-import java.util.function.Predicate;
 
 public class TrackedItem {
 
     public ItemMutable item;
     public UUID originalID;
-    public String lastUpdate; // Last update of the item at format YYYY.MM.DD.hh.mm
+    public Timestamp lastUpdate; // Last update of the item at format YYYY.MM.DD.hh.mm
 
     // Used to create a new Tracked Item.
-    public TrackedItem(ItemMutable item, UUID originalID, String date) {
+    public TrackedItem(ItemMutable item, UUID originalID, Timestamp date) {
         this.item = item;
         this.originalID = originalID;
         this.lastUpdate = date;
@@ -109,26 +96,23 @@ public class TrackedItem {
     }
 
 
-    public boolean isDatedBeforeThan(String date){
-        String format = "yyyy.MM.dd.HH.mm";
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(format);
-        LocalDateTime itemDate = LocalDateTime.parse(this.getLastUpdate(), formatter);
-        LocalDateTime otherDate = LocalDateTime.parse(date, formatter);
-        return itemDate.isBefore(otherDate);
+    public boolean isDatedBeforeThan(Timestamp date){
+        return this.getLastUpdate().before(date);
     }
 
 
 
     public String getBase64(){
-        return itemStackArrayToBase64(new ItemStack[]{this.getItem()});
+        String base = itemStackArrayToBase64(new ItemStack[]{this.getItem()});
+        return base.replaceAll("\\n", "");
     }
 
-    public String getLastUpdate(){
+    public Timestamp getLastUpdate(){
         return this.getItemMutable().getLastUpdate();
     }
 
     public void update(){
-        String newDate = UltimateTracker.getActualDate();
+        Timestamp newDate = UltimateTracker.getActualDate();
         ItemUpdateDateEvent updateEvent = new ItemUpdateDateEvent(this, newDate);
         Bukkit.getPluginManager().callEvent(updateEvent);
         this.getItemMutable().updateDate(newDate);

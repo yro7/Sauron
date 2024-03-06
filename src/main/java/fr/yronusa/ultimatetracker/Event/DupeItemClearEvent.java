@@ -10,6 +10,7 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
+import java.sql.Timestamp;
 import java.util.UUID;
 
 public class DupeItemClearEvent extends Event implements Cancellable {
@@ -49,11 +50,11 @@ public class DupeItemClearEvent extends Event implements Cancellable {
         return this.item.getOriginalID();
     }
 
-    public String getItemLastUpdate(){
+    public Timestamp getItemLastUpdate(){
         return this.item.getLastUpdate();
     }
 
-    public String getDatabaseLastUpdate(){
+    public Timestamp getDatabaseLastUpdate(){
         return Database.getLastUpdate(this.getTrackedItem());
     }
 

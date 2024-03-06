@@ -7,6 +7,7 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import javax.sound.midi.Track;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
@@ -15,10 +16,10 @@ public class ItemUpdateDateEvent extends Event {
 
     private final TrackedItem item;
 
-    private final String newDate;
+    private final Timestamp newDate;
     private static final HandlerList HANDLERS_LIST = new HandlerList();
 
-    public ItemUpdateDateEvent(TrackedItem item, String newDate){
+    public ItemUpdateDateEvent(TrackedItem item, Timestamp newDate){
         this.item = item;
         this.newDate = newDate;
     }
@@ -47,11 +48,11 @@ public class ItemUpdateDateEvent extends Event {
         return this.item.getOriginalID();
     }
 
-    public String getOldDate(){
+    public Timestamp getOldDate(){
         return this.item.getLastUpdate();
     }
 
-    public String getNewDate(){
+    public Timestamp getNewDate(){
         return this.newDate;
     }
 

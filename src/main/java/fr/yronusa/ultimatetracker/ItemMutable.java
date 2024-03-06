@@ -5,8 +5,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.sql.Timestamp;
 import java.util.UUID;
 
 public class ItemMutable {
@@ -21,10 +20,10 @@ public class ItemMutable {
         this.inventory = inventory;
         this.inventoryPlace = place;
     }
-    public String getLastUpdate(){
+    public Timestamp getLastUpdate(){
         SafeNBT nbt = SafeNBT.get(this.getItem());
         if(nbt.hasKey("ut_date")){
-            return nbt.getString("ut_date");
+            return Timestamp.valueOf(nbt.getString("ut_date"));
         }
         else{
             System.out.println("[ULTIMATE TRACKER] Error: the item isn't tracked.");
@@ -61,7 +60,7 @@ public class ItemMutable {
         return nbt.hasKey("ut_id");
     }
 
-    public void setTrackable(UUID id, String newDate){
+    public void setTrackable(UUID id, Timestamp newDate){
 
         if(this.hasTrackingID()){
             return;
@@ -71,7 +70,7 @@ public class ItemMutable {
             ItemStack i = this.getItem();
             SafeNBT nbt = SafeNBT.get(i);
             nbt.setString("ut_id", id.toString());
-            nbt.setString("ut_date", newDate);
+            nbt.setString("ut_date", newDate.toString());
             this.update(nbt.apply(i));
             System.out.println("item set trackable haha");
         }
@@ -88,10 +87,10 @@ public class ItemMutable {
         inv.setItem(this.getInventoryPlace(), newItem);
     }
 
-    public String updateDate(String newDate){
+    public Timestamp updateDate(Timestamp newDate){
         ItemStack i = this.getItem();
         SafeNBT nbt = SafeNBT.get(i);
-        nbt.setString("ut_date", newDate);
+        nbt.setString("ut_date", newDate.toString());
         this.update(nbt.apply(i));
         return newDate;
     }

@@ -7,8 +7,10 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import javax.sound.midi.Track;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 public final class UltimateTracker extends JavaPlugin {
@@ -24,7 +26,7 @@ public final class UltimateTracker extends JavaPlugin {
         return UltimateTracker.instance;
     }
 
-    static boolean database = false;
+    static boolean database = true;
 
     // Defines the maximum length of last inventories list.
     public int inventoryListLength;
@@ -45,11 +47,12 @@ public final class UltimateTracker extends JavaPlugin {
 
     }
 
-    public static String getActualDate(){
-        String format = "yyyy.MM.dd.HH.mm";
+    public static Timestamp getActualDate(){
         LocalDateTime currentDateTime = LocalDateTime.now();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(format);
-        return currentDateTime.format(formatter);
+        LocalDateTime roundedDateTime = currentDateTime.truncatedTo(ChronoUnit.MINUTES);
+        System.out.println("actual date:");
+        System.out.println(Timestamp.valueOf(roundedDateTime).toString());
+        return Timestamp.valueOf(roundedDateTime);
     }
 
     private void verifyDatabase() {

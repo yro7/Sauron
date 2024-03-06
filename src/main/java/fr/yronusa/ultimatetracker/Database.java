@@ -33,6 +33,7 @@ public class Database {
     }
 
     public static void add(TrackedItem trackedItem) {
+
         String itemBase64 = trackedItem.getBase64();
         MysqlDataSource dataSource;
 
@@ -41,12 +42,12 @@ public class Database {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-
+/**
         String base = "INSERT INTO TRACKED_ITEMS (UUID, ITEMBASE64, LAST_UPDATE, LAST_INVENTORIES, IS_BLACKLISTED)\n" +
-                "VALUES (" + trackedItem.getOriginalID() + "," + itemBase64 + "," + trackedItem.getLastUpdate() +"," + trackedItem.getLastInventories().toString() +", 0);\n";
-        String sqlAddRow = base.replaceAll("\\n$", "");
+                "VALUES (" + trackedItem.getOriginalID() + "," + itemBase64 + "," + trackedItem.getLastUpdate() +"," + "trackedItem.getLastInventories().toString()" +", 0);\n";
+        **/
 
-        System.out.println(sqlAddRow);
+        String statement = "INSERT INTO TRACKED_ITEMS (UUID, ITEMBASE64, LAST_UPDATE, LAST_INVENTORIES, IS_BLACKLISTED) VALUES (?, ?, ?, ?, ?)";
         MysqlDataSource finalDataSource = dataSource;
         Bukkit.getScheduler().runTaskAsynchronously(UltimateTracker.getInstance(), new Runnable() {
             @Override
@@ -55,8 +56,17 @@ public class Database {
                 Connection conn = null;
                 try {
                     conn = finalDataSource.getConnection();
-                    Statement stmt = conn.createStatement();
-                    int i = stmt.executeUpdate(sqlAddRow);
+                    PreparedStatement preparedStatement = conn.prepareStatement(statement);
+                    preparedStatement.setString(1, trackedItem.getOriginalID().toString());
+                    preparedStatement.setString(2, itemBase64);
+                    preparedStatement.setTimestamp(3, trackedItem.getLastUpdate());
+                    preparedStatement.setString(4, "TODO");
+                    preparedStatement.setInt(5, 0);
+
+                    preparedStatement.executeUpdate();
+                    System.out.println(preparedStatement);
+
+                    int i = preparedStatement.executeUpdate();
                     if (i > 0) {
                         System.out.println("ROW INSERTED");
                     } else {
@@ -74,7 +84,7 @@ public class Database {
     }
 
 
-    public static String getLastUpdate(UUID uuid){
+    public static Timestamp getLastUpdate(UUID uuid){
         MysqlDataSource dataSource = null;
         try {
             dataSource = getDataSource();
@@ -84,7 +94,7 @@ public class Database {
         String sqlSelectTrackedItem= "SELECT * FROM SAVED_ITEMS WHERE UUID = " + uuid.toString();
         MysqlDataSource finalDataSource = dataSource;
 
-        final String[] res = new String[0];
+        final Timestamp[] res = new Timestamp[0];
         Bukkit.getScheduler().runTaskAsynchronously(UltimateTracker.getInstance(), new Runnable() {
             @Override
             public void run() {
@@ -93,7 +103,7 @@ public class Database {
                     PreparedStatement ps = conn.prepareStatement(sqlSelectTrackedItem);
                     ResultSet rs = ps.executeQuery(); {
                         while (rs.next()) {
-                            res[0] = rs.getString("LAST_UPDATE");
+                            res[0] = rs.getTimestamp("LAST_UPDATE");
                         }
 
 
@@ -147,7 +157,7 @@ public class Database {
     }
 
 
-    public static void update(UUID id, String date){
+    public static void update(UUID id, Timestamp date){
 
     }
 
