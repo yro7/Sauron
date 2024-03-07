@@ -47,8 +47,12 @@ public class Listener implements org.bukkit.event.Listener {
 
     @EventHandler
     public void onHandlingItem(PlayerItemHeldEvent e){
-        if(e.getPlayer().getInventory().getItemInMainHand().getItemMeta() == null) return;
-        ItemMutable i = new ItemMutable(e.getPlayer());
+        System.out.println("handling:");
+        System.out.println(e.getPreviousSlot() + " to  " + e.getNewSlot());
+        ItemStack item2 = e.getPlayer().getInventory().getItem(e.getNewSlot());
+
+        if(item2 == null) return;
+        ItemMutable i = new ItemMutable(e.getPlayer(), e.getNewSlot());
 
         if(i.hasTrackingID()){
             TrackedItem trackedItem = new TrackedItem(i);
@@ -57,7 +61,7 @@ public class Listener implements org.bukkit.event.Listener {
         }
 
         if(TrackedItem.shouldBeTrack(i)){
-            ItemMutable item = new ItemMutable(e.getPlayer());
+            ItemMutable item = new ItemMutable(e.getPlayer(), e.getNewSlot());
             TrackedItem.startTracking(item);
         }
     }

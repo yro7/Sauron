@@ -43,7 +43,7 @@ public class ItemStartTrackingEvent extends Event {
     }
 
     public Timestamp getLastUpdate(){
-        return this.item.getLastUpdate();
+        return this.item.getLastUpdateItem();
     }
 
 }

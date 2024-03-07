@@ -3,7 +3,11 @@ package fr.yronusa.ultimatetracker;
 import fr.yronusa.ultimatetracker.Commands.Command;
 import fr.yronusa.ultimatetracker.Config.TrackingRule;
 import mc.obliviate.inventory.InventoryAPI;
+import org.apache.commons.lang3.Validate;
+import org.bukkit.Bukkit;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitScheduler;
 
 import javax.sound.midi.Track;
 import java.sql.SQLException;
@@ -12,6 +16,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.concurrent.Executor;
 
 public final class UltimateTracker extends JavaPlugin {
 
@@ -32,6 +37,8 @@ public final class UltimateTracker extends JavaPlugin {
     public int inventoryListLength;
     @Override
     public void onEnable() {
+
+        System.out.println("prout");
         // Plugin startup logic
         UltimateTracker.instance = this;
         saveDefaultConfig();
@@ -89,5 +96,13 @@ public final class UltimateTracker extends JavaPlugin {
     @Override
     public void onDisable() {
         // Plugin shutdown logic
+    }
+
+    public static Executor getMainThreadExecutor(Plugin plugin, BukkitScheduler scheduler){
+        Validate.notNull(plugin, "Plugin cannot be null!");
+        return (command) -> {
+            Validate.notNull(command, "Command cannot be null!");
+            scheduler.runTask(plugin, command);
+        };
     }
 }

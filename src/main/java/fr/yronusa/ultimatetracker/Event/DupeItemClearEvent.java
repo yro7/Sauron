@@ -51,7 +51,7 @@ public class DupeItemClearEvent extends Event implements Cancellable {
     }
 
     public Timestamp getItemLastUpdate(){
-        return this.item.getLastUpdate();
+        return this.item.getLastUpdateItem();
     }
 
     public Timestamp getDatabaseLastUpdate(){

@@ -49,7 +49,7 @@ public class ItemUpdateDateEvent extends Event {
     }
 
     public Timestamp getOldDate(){
-        return this.item.getLastUpdate();
+        return this.item.getLastUpdateItem();
     }
 
     public Timestamp getNewDate(){

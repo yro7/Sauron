@@ -37,6 +37,12 @@ public class ItemMutable {
         this.inventoryPlace = p.getInventory().getHeldItemSlot();
     }
 
+    public ItemMutable(Player p, int slot) {
+        this.item = p.getInventory().getItem(slot);
+        this.inventory = p.getInventory();
+        this.inventoryPlace = slot;
+    }
+
     public ItemStack getItem() {
         return item;
     }
@@ -93,6 +99,10 @@ public class ItemMutable {
         nbt.setString("ut_date", newDate.toString());
         this.update(nbt.apply(i));
         return newDate;
+    }
+
+    public void delete(){
+        this.item.setAmount(0);
     }
 
 

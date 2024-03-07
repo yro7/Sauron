@@ -4,13 +4,17 @@ import fr.yronusa.ultimatetracker.Event.ItemStartTrackingEvent;
 import fr.yronusa.ultimatetracker.Event.ItemUpdateDateEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.io.BukkitObjectOutputStream;
 import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
 
+import javax.sound.midi.Track;
+import javax.xml.crypto.Data;
 import java.io.ByteArrayOutputStream;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 
 public class TrackedItem {
 
@@ -51,7 +55,20 @@ public class TrackedItem {
         return this.isDatedBeforeThan(Database.getLastUpdate(this.getOriginalID()));
     }
 
+    public void checkDuplication(){
+        Timestamp dtbTimestamp = Database.getLastUpdate(this.getOriginalID());
 
+        TrackedItem item = this;
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                if(isDatedBeforeThan(dtbTimestamp)){
+                    System.out.println("DUPLICATION AHHHHHHHHHHHH");
+                    item.quarantine();
+                    }
+            }
+        }.runTaskLaterAsynchronously(UltimateTracker.getInstance(), 10);
+    }
     public UUID getOriginalID() {
         return originalID;
     }
@@ -94,10 +111,8 @@ public class TrackedItem {
             return trackedItem;
         }
     }
-
-
     public boolean isDatedBeforeThan(Timestamp date){
-        return this.getLastUpdate().before(date);
+        return this.getLastUpdateItem().before(date);
     }
 
 
@@ -107,22 +122,34 @@ public class TrackedItem {
         return base.replaceAll("\\n", "");
     }
 
-    public Timestamp getLastUpdate(){
+    public Timestamp getLastUpdateItem(){
         return this.getItemMutable().getLastUpdate();
     }
 
-    public void update(){
-        Timestamp newDate = UltimateTracker.getActualDate();
-        ItemUpdateDateEvent updateEvent = new ItemUpdateDateEvent(this, newDate);
-        Bukkit.getPluginManager().callEvent(updateEvent);
-        this.getItemMutable().updateDate(newDate);
-        Database.update(this.originalID, newDate);
+    public void update() {
+        System.out.println("UPDATING: " + this.originalID);
+      //  try {
+            if (Database.checkDupli(this).join()){///Database.checkDupli(this).get()){
+                System.out.println("prout DUPE FOUND HAAAAAAAAAAA");
+                this.quarantine();
+            }
+
+            else{
+                System.out.println("else passed check");
+                Timestamp newDate = UltimateTracker.getActualDate();
+                ItemUpdateDateEvent updateEvent = new ItemUpdateDateEvent(this, newDate);
+                Bukkit.getPluginManager().callEvent(updateEvent);
+                this.getItemMutable().updateDate(newDate);
+                Database.update(this.getOriginalID(), newDate);
+            }
+     /**   } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException(e);
+        }**/
 
     }
 
 
-
-    public static String itemStackArrayToBase64(ItemStack[] items) throws IllegalStateException {
+        public static String itemStackArrayToBase64(ItemStack[] items) throws IllegalStateException {
         try {
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             BukkitObjectOutputStream dataOutput = new BukkitObjectOutputStream(outputStream);
@@ -141,6 +168,10 @@ public class TrackedItem {
         } catch (Exception e) {
             throw new IllegalStateException("Unable to save item stacks.", e);
         }
+    }
+
+    public void quarantine(){
+        this.getItemMutable().delete();
     }
 
 

@@ -2,12 +2,16 @@ package fr.yronusa.ultimatetracker;
 
 import com.mysql.cj.jdbc.MysqlConnectionPoolDataSource;
 import com.mysql.cj.jdbc.MysqlDataSource;
+import fr.yronusa.ultimatetracker.Event.ItemUpdateDateEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
+
 import java.sql.*;
 import java.util.List;
 import java.util.TimeZone;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 public class Database {
 
@@ -34,6 +38,9 @@ public class Database {
 
     public static void add(TrackedItem trackedItem) {
 
+        System.out.println("ADDING NEW ITEM : " + trackedItem.toString());
+        System.out.println("item uuid: " + trackedItem.getOriginalID().toString());
+
         String itemBase64 = trackedItem.getBase64();
         MysqlDataSource dataSource;
 
@@ -59,11 +66,9 @@ public class Database {
                     PreparedStatement preparedStatement = conn.prepareStatement(statement);
                     preparedStatement.setString(1, trackedItem.getOriginalID().toString());
                     preparedStatement.setString(2, itemBase64);
-                    preparedStatement.setTimestamp(3, trackedItem.getLastUpdate());
+                    preparedStatement.setTimestamp(3, trackedItem.getLastUpdateItem());
                     preparedStatement.setString(4, "TODO");
                     preparedStatement.setInt(5, 0);
-
-                    preparedStatement.executeUpdate();
                     System.out.println(preparedStatement);
 
                     int i = preparedStatement.executeUpdate();
@@ -85,41 +90,52 @@ public class Database {
 
 
     public static Timestamp getLastUpdate(UUID uuid){
-        MysqlDataSource dataSource = null;
+
+        MysqlDataSource dataSource;
         try {
             dataSource = getDataSource();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-        String sqlSelectTrackedItem= "SELECT * FROM SAVED_ITEMS WHERE UUID = " + uuid.toString();
-        MysqlDataSource finalDataSource = dataSource;
 
-        final Timestamp[] res = new Timestamp[0];
+        String statement = "SELECT LAST_UPDATE FROM TRACKED_ITEMS WHERE UUID = ?";
+
+        MysqlDataSource finalDataSource = dataSource;
+        final Timestamp[] lastUpdateTimestamp = new Timestamp[1];
         Bukkit.getScheduler().runTaskAsynchronously(UltimateTracker.getInstance(), new Runnable() {
             @Override
             public void run() {
+
+                Connection conn;
                 try {
-                    Connection conn = finalDataSource.getConnection();
-                    PreparedStatement ps = conn.prepareStatement(sqlSelectTrackedItem);
-                    ResultSet rs = ps.executeQuery(); {
-                        while (rs.next()) {
-                            res[0] = rs.getTimestamp("LAST_UPDATE");
-                        }
+                    conn = finalDataSource.getConnection();
+                    PreparedStatement preparedStatement = conn.prepareStatement(statement);
+                    preparedStatement.setString(1, uuid.toString());
+                    System.out.println(preparedStatement);
 
+                    ResultSet resultSet = preparedStatement.executeQuery();
 
+                    // Check if the result set has data
+                    if (resultSet.next()) {
+                        // Retrieve the last update timestamp from the result set
+                        lastUpdateTimestamp[0] = resultSet.getTimestamp("LAST_UPDATE");
+
+                        // Print or use the timestamp as needed
+                        System.out.println("Last Update Timestamp for UUID " + uuid.toString() + ": " + lastUpdateTimestamp[0]);
+                    } else {
+                        System.out.println("No data found for UUID: " + uuid.toString());
                     }
+
                 } catch (SQLException e) {
                     e.printStackTrace();
-                    // handle the exception
+                    // Handle the exception appropriately
                 }
+
+
             }
-
-
         });
 
-
-
-        return res[0];
+        return lastUpdateTimestamp[0];
     }
     public static List<InventoryLocation> getLastInventories(UUID uuid){
         MysqlDataSource dataSource = null;
@@ -155,237 +171,62 @@ public class Database {
         });
         return null;
     }
+    public static void update(UUID uuid, Timestamp newDate) {
 
+        MysqlDataSource dataSource;
+        try {
+            dataSource = getDataSource();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
 
-    public static void update(UUID id, Timestamp date){
+        String statement = "UPDATE TRACKED_ITEMS SET LAST_UPDATE = ? WHERE UUID = ?";
 
-    }
-
-/**
-
-    public static List<TrackedItem> getTrackedItems(int a, int b) throws SQLException {
-        // Gets item from A to B in the dtb
-
-        MysqlDataSource dataSource = getDataSource();
-        String sqlSelectTrackedItemsFromAtoB= "SELECT * FROM TRACKED_ITEMS WHERE id >= " + a + " AND id <= " + b;
-        List<TrackedItem> trackedItems = new ArrayList<>();
+        MysqlDataSource finalDataSource = dataSource;
         Bukkit.getScheduler().runTaskAsynchronously(UltimateTracker.getInstance(), new Runnable() {
             @Override
             public void run() {
-                try (
 
-                        Connection conn = dataSource.getConnection();
-                        PreparedStatement ps = conn.prepareStatement(sqlSelectTrackedItemsFromAtoB);
-
-
-                        ResultSet rs = ps.executeQuery()) {
-                    while (rs.next()) {
-                        ItemStack item = ItemSaver.itemStackFromBase64(rs.getString("itemBase64"));
-                        Inventory inventory = ItemSaver.inventoryFromString(rs.getString("inventory"));
-                        Inventory lastInventory = ItemSaver.inventoryFromString(rs.getString("lastInventory"));
-                        int inventoryPlace = rs.getInt("inventoryPlace");
-                        UUID originalID = UUID.fromString(rs.getString("originalID"));
-                        UUID trackingID = UUID.fromString(rs.getString("trackingID"));
-
-
-                        TrackedItem t = new TrackedItem(item, inventory, lastInventory, inventoryPlace, originalID, trackingID);
-                        trackedItems.add(t);
-                    }
-
-
-                } catch (SQLException | IOException e) {
-                    e.printStackTrace();
-                    // handle the exception
-                }
-
-                return null;
-            }
-        });
-
-        return trackedItems;
-    }
-
-    public static List<ItemStack> getSavedItems(int a, int b) throws SQLException {
-        MysqlDataSource dataSource = getDataSource();
-        String sqlSelectTrackedItemsFromAtoB= "SELECT * FROM SAVED_ITEMS WHERE id >= " + a + " AND id <= " + b;
-        List<ItemStack> savedItems = new ArrayList<>();
-
-        Bukkit.getScheduler().runTaskAsynchronously(UltimateTracker.getInstance(), new Runnable() {
-            @Override
-            public void run() {
+                Connection conn;
                 try {
-                    Connection conn = dataSource.getConnection();
-                    PreparedStatement ps = conn.prepareStatement(sqlSelectTrackedItemsFromAtoB);
-                    ResultSet rs = ps.executeQuery(); {
-                        while (rs.next()) {
-                            System.out.println("0. " + rs.getString("itemBase64"));
-                            ItemStack item = ItemSaver.itemStackFromBase64(rs.getString("itemBase64"));
-                            System.out.println("2. " + item);
-                            savedItems.add(item);
-                        }
+                    conn = finalDataSource.getConnection();
+                    PreparedStatement preparedStatement = conn.prepareStatement(statement);
+                    preparedStatement.setTimestamp(1, newDate);
+                    preparedStatement.setString(2, uuid.toString());
+                    System.out.println(preparedStatement);
 
-
+                    int i = preparedStatement.executeUpdate();
+                    if (i > 0) {
+                        System.out.println("ROW UPDATED");
+                    } else {
+                        System.out.println("ROW NOT UPDATED");
                     }
-                } catch (SQLException | IOException e) {
-                    e.printStackTrace();
-                    // handle the exception
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
                 }
 
+
             }
-
         });
-
-        CompletableFuture<List<TrackedItem>> future = CompletableFuture.supplyAsync(() -> {
-            TrackedItem data = database.fetchData(playerId); // blocking method
-            data.setSomeValue(true);
-            return data;
-        });
-
-        future.exceptionally(error -> {
-            error.printStackTrace();
-            return new ErrorData();
-        });
-
-        future.thenAccept((data) -> {
-            player.sendMessage("The value is " + data.getSomeValue());
-        });
-
-// This code still executes first, as the database code is being ran on another thread and won't be available this soon
-        player.sendMessage("Fetching data..");
-
-        return savedItems;
-    }
-
-
-
-    public static void createDatabase() throws SQLException {
-        try {
-            MysqlDataSource dataSource = getDataSource();
-            Connection connection = dataSource.getConnection();
-
-            // Create a statement
-            Statement statement = connection.createStatement();
-
-            // Check if the database exists
-            String checkExistenceQuery = "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '" + databaseName + "'";
-            boolean databaseExists = statement.executeQuery(checkExistenceQuery).next();
-
-            // If the database doesn't exist, create it
-            if (!databaseExists) {
-                String createDatabaseQuery = "CREATE DATABASE " + databaseName;
-                statement.executeUpdate(createDatabaseQuery);
-                System.out.println("Database created successfully.");
-            } else {
-                System.out.println("Database already exists.");
-            }
-
-            // Close the statement and connection
-            statement.close();
-            connection.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
 
 
     }
 
-    public static void createTables() throws SQLException {
+    public static CompletableFuture<Boolean> checkDupli(TrackedItem item) {
+        return CompletableFuture.supplyAsync(() -> getLastUpdate(item.getOriginalID()))
+                .thenApplyAsync(timestamp -> {
+                    if(timestamp.before(item.getLastUpdateItem())){
+                        System.out.println("dupli notfound dtb");
+                        return false;
+                    }
 
-        // TRY TO CREATE THE "SAVED ITEM" TABLE IN "ULTIMATE TRACKER" DATABASE
-        try {
-            MysqlDataSource dataSource = getDataSource();
-            Connection connection = dataSource.getConnection();
+                    else{
+                        item.quarantine();
+                        System.out.println("dupli found dtb");
+                        return true;
+                    }
 
-            // Specify the name of the table you want to create
-            String tableName = "SAVED_ITEMS";
-
-            // Create a statement
-            Statement statement = connection.createStatement();
-
-            // Check if the table exists
-            String checkExistenceQuery = "SELECT 1 FROM " + tableName + " LIMIT 1";
-            boolean tableExists;
-            try{
-                tableExists = statement.execute(checkExistenceQuery);
-            }
-            catch(Exception e){
-                tableExists = false;
-            }
-
-            // If the table doesn't exist, create it
-            if (!tableExists) {
-                String createTableQuery = "CREATE TABLE " + tableName + " ("
-                        +
-                        "id INT AUTO_INCREMENT PRIMARY KEY, " +
-
-                        "itemBase64 VARCHAR(5000) NOT NULL, " + // Change this to the appropriate data type for item names
-                        ")";
-                statement.executeUpdate(createTableQuery);
-                System.out.println("Table created successfully.");
-            } else {
-                System.out.println("Table already exists.");
-            }
-
-            // Close the statement and connection
-            statement.close();
-            connection.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        // TRY TO CREATE THE "TRACKED ITEMS" TABLE IN "ULTIMATE TRACKER" DATABASE
-        try {
-            MysqlDataSource dataSource = getDataSource();
-            Connection connection = dataSource.getConnection();
-
-            // Specify the name of the table you want to create
-            String tableName = "TRACKED_ITEMS";
-
-            // Create a statement
-            Statement statement = connection.createStatement();
-
-            // Check if the table exists
-            String checkExistenceQuery = "SELECT 1 FROM " + tableName + " LIMIT 1";
-            boolean tableExists = statement.execute(checkExistenceQuery);
-
-            // If the table doesn't exist, create it
-            if (!tableExists) {
-                String createTableQuery = "CREATE TABLE " + tableName + " ("
-                        +
-                        "id INT AUTO_INCREMENT PRIMARY KEY, " +
-                        "item CHAR(500), " +
-                        "inventory CHAR(500), " +
-                        "lastInventory CHAR(500), " +
-                        "inventoryPlace INT," +
-                        "originalID CHAR(36) NOT NULL, " +
-                        "trackingID CHAR(36) NOT NULL" +
-                        ")";
-                statement.executeUpdate(createTableQuery);
-                System.out.println("Table created successfully.");
-            } else {
-                System.out.println("Table already exists.");
-            }
-
-            // Close the statement and connection
-            statement.close();
-            connection.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
+                }, (t) -> Bukkit.getScheduler().runTask(UltimateTracker.getInstance(), t));
     }
-
-    public static MysqlDataSource getDataSource() throws SQLException {
-        MysqlDataSource dataSource = new MysqlConnectionPoolDataSource();
-        dataSource.setServerName(host);
-        dataSource.setPort(port);
-        dataSource.setDatabaseName(databaseName);
-        dataSource.setUser(username);
-        dataSource.setPassword(password);
-        dataSource.setServerTimezone(TimeZone.getDefault().getID());
-
-        return dataSource;
-    }
-**/
 }
 

@@ -52,7 +52,7 @@ public class DupeDetectedEvent extends Event {
     }
 
     public Timestamp getItemLastUpdate(){
-        return this.item.getLastUpdate();
+        return this.item.getLastUpdateItem();
     }
 
     public Timestamp getDatabaseLastUpdate(){
