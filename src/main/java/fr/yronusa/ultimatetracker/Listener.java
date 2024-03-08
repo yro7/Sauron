@@ -22,33 +22,8 @@ import java.sql.Array;
 
 public class Listener implements org.bukkit.event.Listener {
 
-    public static String base64;
-
-    @EventHandler
-    public void onProut(PlayerBedEnterEvent e){
-        ItemStack[] i = new ItemStack[]{e.getPlayer().getInventory().getItemInMainHand()};
-        if(i[0].getAmount() != 0){
-            System.out.println(i);
-           // base64 = ItemSaver.itemStackArrayToBase64(i);
-            System.out.println(base64.length());
-
-
-
-        }
-    }
-
-    @EventHandler
-    public void onProut2(PlayerBedLeaveEvent e) throws IOException {
-        ItemStack[] i = ItemSaver.itemStackArrayFromBase64(base64);
-        System.out.println(base64);
-        e.getPlayer().getInventory().setItemInMainHand(i[0]);
-
-    }
-
     @EventHandler
     public void onHandlingItem(PlayerItemHeldEvent e){
-        System.out.println("handling:");
-        System.out.println(e.getPreviousSlot() + " to  " + e.getNewSlot());
         ItemStack item2 = e.getPlayer().getInventory().getItem(e.getNewSlot());
 
         if(item2 == null) return;
@@ -66,9 +41,4 @@ public class Listener implements org.bukkit.event.Listener {
         }
     }
 
-    @EventHandler
-    public void onUpdate(ItemUpdateDateEvent e){
-        System.out.println("ITEM UPDATE!!! new date:");
-        System.out.println(e.getNewDate());
-    }
 }

@@ -1,13 +1,16 @@
 package fr.yronusa.ultimatetracker;
 
 import fr.yronusa.ultimatetracker.Commands.Command;
+import fr.yronusa.ultimatetracker.Config.Config;
 import fr.yronusa.ultimatetracker.Config.TrackingRule;
 import mc.obliviate.inventory.InventoryAPI;
 import org.apache.commons.lang3.Validate;
 import org.bukkit.Bukkit;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitScheduler;
+import org.jetbrains.annotations.NotNull;
 
 import javax.sound.midi.Track;
 import java.sql.SQLException;
@@ -24,9 +27,7 @@ public final class UltimateTracker extends JavaPlugin {
 
     public static List<TrackingRule> rules;
 
-    public static List<TrackingRule> getTrackingRules(){
-        return UltimateTracker.rules;
-    }
+
     public static UltimateTracker getInstance(){
         return UltimateTracker.instance;
     }
@@ -37,18 +38,12 @@ public final class UltimateTracker extends JavaPlugin {
     public int inventoryListLength;
     @Override
     public void onEnable() {
-
-        System.out.println("prout");
-        // Plugin startup logic
         UltimateTracker.instance = this;
+        Config.load();
         saveDefaultConfig();
-
         registerEvents();
         registerCommands();
-
-
         UltimateTracker.rules = TrackingRule.getTrackingRulesFromConfig();
-
         verifyDatabase();
 
 

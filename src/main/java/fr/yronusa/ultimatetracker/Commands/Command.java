@@ -1,10 +1,8 @@
 package fr.yronusa.ultimatetracker.Commands;
 
-import fr.yronusa.ultimatetracker.Database;
+import fr.yronusa.ultimatetracker.*;
+import fr.yronusa.ultimatetracker.Config.Config;
 import fr.yronusa.ultimatetracker.Event.ItemStartTrackingEvent;
-import fr.yronusa.ultimatetracker.ItemMutable;
-import fr.yronusa.ultimatetracker.ItemSaver;
-import fr.yronusa.ultimatetracker.TrackedItem;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.command.CommandExecutor;
@@ -18,38 +16,25 @@ import javax.sound.midi.Track;
 import java.util.List;
 import java.util.UUID;
 
+import static org.bukkit.Bukkit.reload;
+
 public class Command implements CommandExecutor {
 
 
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, org.bukkit.command.@NotNull Command command, @NotNull String s, @NotNull String[] strings) {
-       if(!(commandSender instanceof Player)){
+       if(!(commandSender instanceof Player p)){
            commandSender.sendMessage("§cCette commande doit être utilisée en jeu!");
            return true;
        }
 
-       if(strings.length == 0){
-           commandSender.sendMessage("§2§l---|--- §a§lUltimateTracker §2§l---|---");
-           commandSender.sendMessage("");
-           commandSender.sendMessage("§aCommandes:");
-           commandSender.sendMessage("");
-           commandSender.sendMessage("§7* §a/ut: §7Affiche ce menu d'aide.");
-           commandSender.sendMessage("");
-           commandSender.sendMessage("§7* §a/ut list saved: §7Affiche la liste des objets enregistrés.");
-           commandSender.sendMessage("§7* §a/ut list tracked: §7Affiche la liste des objets traqués.");
-           commandSender.sendMessage("");
-           commandSender.sendMessage("§7* §a/ut track: §7Traque l'objet entre les mains.");
-           commandSender.sendMessage("");
-           commandSender.sendMessage("§7* §a/ut stop: §7Arrête ou remet en route l'update automatique des yci_id 'blank'. Utile pour du debug ou de l'édition d'items customs.");
-           commandSender.sendMessage("");
-           commandSender.sendMessage("§7* §a/ut (stop): §7Arrête ou remet en route l'update automatique des yci_id 'blank'. Utile pour du debug ou de l'édition d'items customs.");
-
-
-
+        if(strings.length == 0){
+           for(String msg : Config.helpCommand){
+               p.sendMessage(msg);
+           }
            return true;
        }
 
-       Player p = (Player) commandSender;
 
         switch(strings[0].toLowerCase()){
             case "save":
@@ -70,6 +55,9 @@ public class Command implements CommandExecutor {
             case "track":
                 track(p);
                 break;
+            case "reload":
+                reload(p);
+                break;
 
         }
 
@@ -82,32 +70,31 @@ public class Command implements CommandExecutor {
         if(i.getType() != Material.AIR){
 
             try{
-                //Database.saveItem(i);
                 ItemMutable item = new ItemMutable(p);
 
                 if(item.hasTrackingID()){
-                    p.sendMessage("§7* §cL'objet est déjà traqué !");
+                    p.sendMessage(Config.trackAlreadyTracked);
                     return;
                 }
 
                 if(item.getItem().getAmount() > 1){
-                    p.sendMessage("§7* §cVeuillez déstacker l'objet avant de le traquer.");
+                    p.sendMessage(Config.trackStacked);
                     return;
                 }
 
                 TrackedItem.startTracking(item);
-                p.sendMessage("§7* §aObjet traqué avec succès !");
+                p.sendMessage(Config.trackSuccess);
             }
 
             catch(Exception e){
                 e.printStackTrace();
-                p.sendMessage("§7* §cERREUR: L'objet n'a pas correctement pu être traqué.");
+                p.sendMessage(Config.trackFailed);
             }
 
         }
 
         else{
-            p.sendMessage("§7* §cVous devez tenir un objet en main!");
+            p.sendMessage(Config.trackEmpty);
         }
     }
 
@@ -143,6 +130,11 @@ public class Command implements CommandExecutor {
 
 
     private void quarantines(Player p) {
+    }
+
+    public void reload(Player p){
+        UltimateTracker.getInstance().reloadConfig();
+        p.sendMessage(Config.reloadSuccessful);
     }
 
     private void list(Player p, String[] args){

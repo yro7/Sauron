@@ -2,35 +2,30 @@ package fr.yronusa.ultimatetracker;
 
 import com.mysql.cj.jdbc.MysqlConnectionPoolDataSource;
 import com.mysql.cj.jdbc.MysqlDataSource;
+import fr.yronusa.ultimatetracker.Config.Config;
 import fr.yronusa.ultimatetracker.Event.ItemUpdateDateEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
 
+import javax.xml.crypto.Data;
 import java.sql.*;
 import java.util.List;
 import java.util.TimeZone;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 
 public class Database {
 
-    public static FileConfiguration config = UltimateTracker.getInstance().getConfig();
-    public static String host = config.getString("database.host");
-    public static int port = config.getInt("database.port");
-    public static String databaseName = config.getString("database.database");
-    public static String username = config.getString("database.user");
-    public static String password = config.getString("database.password");
-    public static String jdbcURL = "jdbc:mysql://" + host + ":" + port + "/" + databaseName +
-            "?useSSL=false&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=Europe/Paris";
-
     public static MysqlDataSource getDataSource() throws SQLException {
         MysqlDataSource dataSource = new MysqlConnectionPoolDataSource();
-        dataSource.setServerName(host);
-        dataSource.setPort(port);
-        dataSource.setDatabaseName(databaseName);
-        dataSource.setUser(username);
-        dataSource.setPassword(password);
+        dataSource.setServerName(Config.databaseHost);
+        dataSource.setPort(Config.databasePort);
+        dataSource.setDatabaseName(Config.databaseName);
+        dataSource.setUser(Config.databaseUser);
+        dataSource.setPassword(Config.databasePassword);
         dataSource.setServerTimezone(TimeZone.getDefault().getID());
 
         return dataSource;
@@ -88,6 +83,12 @@ public class Database {
 
     }
 
+    public static CompletableFuture<Timestamp> getLastUpdateCF(UUID uuid){
+        return CompletableFuture.supplyAsync(() -> {
+            return Database.getLastUpdate(uuid); // blocking method
+        });
+    }
+
 
     public static Timestamp getLastUpdate(UUID uuid){
 
@@ -101,41 +102,32 @@ public class Database {
         String statement = "SELECT LAST_UPDATE FROM TRACKED_ITEMS WHERE UUID = ?";
 
         MysqlDataSource finalDataSource = dataSource;
-        final Timestamp[] lastUpdateTimestamp = new Timestamp[1];
-        Bukkit.getScheduler().runTaskAsynchronously(UltimateTracker.getInstance(), new Runnable() {
-            @Override
-            public void run() {
+        Timestamp lastUpdateTimestamp = null;
+        Connection conn;
+        try {
+            conn = finalDataSource.getConnection();
+            PreparedStatement preparedStatement = conn.prepareStatement(statement);
+            preparedStatement.setString(1, uuid.toString());
+            System.out.println(preparedStatement);
 
-                Connection conn;
-                try {
-                    conn = finalDataSource.getConnection();
-                    PreparedStatement preparedStatement = conn.prepareStatement(statement);
-                    preparedStatement.setString(1, uuid.toString());
-                    System.out.println(preparedStatement);
+            ResultSet resultSet = preparedStatement.executeQuery();
 
-                    ResultSet resultSet = preparedStatement.executeQuery();
-
-                    // Check if the result set has data
-                    if (resultSet.next()) {
-                        // Retrieve the last update timestamp from the result set
-                        lastUpdateTimestamp[0] = resultSet.getTimestamp("LAST_UPDATE");
-
-                        // Print or use the timestamp as needed
-                        System.out.println("Last Update Timestamp for UUID " + uuid.toString() + ": " + lastUpdateTimestamp[0]);
-                    } else {
-                        System.out.println("No data found for UUID: " + uuid.toString());
-                    }
-
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                    // Handle the exception appropriately
-                }
-
-
+            // Check if the result set has data
+            if (resultSet.next()) {
+                // Retrieve the last update timestamp from the result set
+                lastUpdateTimestamp = resultSet.getTimestamp("LAST_UPDATE");
+                // Print or use the timestamp as needed
+                System.out.println("Last Update Timestamp for UUID " + uuid.toString() + ": " + lastUpdateTimestamp);
+            } else {
+                System.out.println("No data found for UUID: " + uuid.toString());
             }
-        });
 
-        return lastUpdateTimestamp[0];
+        } catch (SQLException e) {
+            e.printStackTrace();
+            // Handle the exception appropriately
+        }
+
+        return lastUpdateTimestamp;
     }
     public static List<InventoryLocation> getLastInventories(UUID uuid){
         MysqlDataSource dataSource = null;
@@ -212,21 +204,29 @@ public class Database {
 
     }
 
-    public static CompletableFuture<Boolean> checkDupli(TrackedItem item) {
-        return CompletableFuture.supplyAsync(() -> getLastUpdate(item.getOriginalID()))
-                .thenApplyAsync(timestamp -> {
-                    if(timestamp.before(item.getLastUpdateItem())){
-                        System.out.println("dupli notfound dtb");
-                        return false;
-                    }
+    public static void handleDupe(TrackedItem item) {
+        System.out.println("HANDLE DUPE METHOD 1");
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                Timestamp dtbTS = Database.getLastUpdate(item.getOriginalID());
+                Timestamp itemTS = item.getLastUpdateItem();
+                System.out.println("HANDLING DUPE ASYNC METHOD");
+                if(itemTS.before(dtbTS)){
+                    System.out.println("DUPE DETECTED");
+                    item.quarantine();
+                }
+            }
+        }.runTaskAsynchronously(UltimateTracker.getInstance());
 
-                    else{
-                        item.quarantine();
-                        System.out.println("dupli found dtb");
-                        return true;
-                    }
+        }
 
-                }, (t) -> Bukkit.getScheduler().runTask(UltimateTracker.getInstance(), t));
+    public static boolean isDuplicated(TrackedItem item){
+        Timestamp databaseTimestamp = Database.getLastUpdate(item.getOriginalID());
+        Timestamp itemTimestamp = item.getLastUpdateItem();
+        System.out.println("dtb ts : " + databaseTimestamp);
+        System.out.println("item ts : " + itemTimestamp);
+        return itemTimestamp.before(databaseTimestamp);
     }
 }
 

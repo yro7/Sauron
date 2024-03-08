@@ -4,5 +4,23 @@ database:
   database: ULTIMATE_TRACKER
   user: root
   password: prout
-
-rules:
+settings:
+  delay: 60
+messages:
+  dupe-found-player: "OMG DUPE FOUND"
+  commands:
+    reload: "§7* §aPlugin successfully reloaded."
+    help:
+      - "§2§l---|--- §a§lUltimateTracker §2§l---|---"
+      - "§aAuthor: Yronusa"
+      - "§aCommands:"
+      - ""
+      - "§7* §a/ut: §7Show this menu."
+      - ""
+      - "§7* §a/ut list saved: §7Show the list of saved items."
+      - "§7* §a/ut list tracked: §7Show the list of tracked items."
+      - ""
+      - "§7* §a/ut track: §7Start tracking the object you have in hands."
+      - ""
+      - "§7* §a/ut stop: §7Stop or start tracked item's update for player. Can be used for debugging or custom items edition."
+      - ""

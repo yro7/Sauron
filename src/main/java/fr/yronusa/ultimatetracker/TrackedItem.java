@@ -1,8 +1,11 @@
 package fr.yronusa.ultimatetracker;
 
+import fr.yronusa.ultimatetracker.Config.Config;
 import fr.yronusa.ultimatetracker.Event.ItemStartTrackingEvent;
 import fr.yronusa.ultimatetracker.Event.ItemUpdateDateEvent;
 import org.bukkit.Bukkit;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.io.BukkitObjectOutputStream;
@@ -14,9 +17,12 @@ import java.io.ByteArrayOutputStream;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
+
 public class TrackedItem {
+
 
     public ItemMutable item;
     public UUID originalID;
@@ -51,29 +57,9 @@ public class TrackedItem {
         return false;**/
     }
 
-    public boolean isDuplicated(){
-        return this.isDatedBeforeThan(Database.getLastUpdate(this.getOriginalID()));
-    }
-
-    public void checkDuplication(){
-        Timestamp dtbTimestamp = Database.getLastUpdate(this.getOriginalID());
-
-        TrackedItem item = this;
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if(isDatedBeforeThan(dtbTimestamp)){
-                    System.out.println("DUPLICATION AHHHHHHHHHHHH");
-                    item.quarantine();
-                    }
-            }
-        }.runTaskLaterAsynchronously(UltimateTracker.getInstance(), 10);
-    }
     public UUID getOriginalID() {
         return originalID;
     }
-
-
     public ItemStack getItem() {
         return this.item.item;
     }
@@ -94,12 +80,9 @@ public class TrackedItem {
         }
 
         else{
-            System.out.println("starting tracking item...");
             UUID originalID = UUID.randomUUID();
             item.setTrackable(originalID, UltimateTracker.getActualDate());
-            System.out.println("item set tracked cote tracked item, now generating trackeditem");
             TrackedItem trackedItem = new TrackedItem(item);
-            System.out.println("prout");
 
             if(UltimateTracker.database) {
                 Database.add(trackedItem);
@@ -111,10 +94,15 @@ public class TrackedItem {
             return trackedItem;
         }
     }
-    public boolean isDatedBeforeThan(Timestamp date){
-        return this.getLastUpdateItem().before(date);
-    }
 
+
+    public Player getPlayer(){
+        if(this.getItemMutable().getInventory().getHolder() instanceof Player p){
+            return p;
+        }
+
+        return null;
+    }
 
 
     public String getBase64(){
@@ -127,29 +115,41 @@ public class TrackedItem {
     }
 
     public void update() {
-        System.out.println("UPDATING: " + this.originalID);
-      //  try {
-            if (Database.checkDupli(this).join()){///Database.checkDupli(this).get()){
-                System.out.println("prout DUPE FOUND HAAAAAAAAAAA");
+
+        if(!shouldUpdate()){
+            return;
+        }
+
+        Timestamp newDate = UltimateTracker.getActualDate();
+        CompletableFuture<Boolean> isDupli = CompletableFuture.supplyAsync(() -> Database.isDuplicated(this));
+        isDupli.exceptionally(error -> {
+            Database.update(this.getOriginalID(), newDate);
+            this.getItemMutable().updateDate(newDate);
+            return false;
+        });
+        isDupli.thenAccept((res) -> {
+            if(res){
+                if(this.getPlayer() != null){
+                    this.getPlayer().sendMessage(Config.dupeFoundPlayer);
+
+                }
                 this.quarantine();
             }
 
             else{
-                System.out.println("else passed check");
-                Timestamp newDate = UltimateTracker.getActualDate();
-                ItemUpdateDateEvent updateEvent = new ItemUpdateDateEvent(this, newDate);
-                Bukkit.getPluginManager().callEvent(updateEvent);
-                this.getItemMutable().updateDate(newDate);
                 Database.update(this.getOriginalID(), newDate);
+                this.getItemMutable().updateDate(newDate);
             }
-     /**   } catch (InterruptedException | ExecutionException e) {
-            throw new RuntimeException(e);
-        }**/
+        });
+    }
 
+    private boolean shouldUpdate() {
+
+        return true;
     }
 
 
-        public static String itemStackArrayToBase64(ItemStack[] items) throws IllegalStateException {
+    public static String itemStackArrayToBase64(ItemStack[] items) throws IllegalStateException {
         try {
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             BukkitObjectOutputStream dataOutput = new BukkitObjectOutputStream(outputStream);
