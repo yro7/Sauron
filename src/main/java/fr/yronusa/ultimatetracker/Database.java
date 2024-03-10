@@ -5,16 +5,10 @@ import com.mysql.cj.jdbc.MysqlDataSource;
 import fr.yronusa.ultimatetracker.Config.Config;
 import fr.yronusa.ultimatetracker.Event.ItemUpdateDateEvent;
 import org.bukkit.Bukkit;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.scheduler.BukkitRunnable;
-
-import javax.xml.crypto.Data;
 import java.sql.*;
 import java.util.List;
 import java.util.TimeZone;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 
 public class Database {

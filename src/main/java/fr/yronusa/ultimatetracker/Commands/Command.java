@@ -1,22 +1,15 @@
 package fr.yronusa.ultimatetracker.Commands;
 
-import fr.yronusa.ultimatetracker.*;
 import fr.yronusa.ultimatetracker.Config.Config;
-import fr.yronusa.ultimatetracker.Event.ItemStartTrackingEvent;
-import org.bukkit.Bukkit;
+import fr.yronusa.ultimatetracker.ItemMutable;
+import fr.yronusa.ultimatetracker.TrackedItem;
+import fr.yronusa.ultimatetracker.UltimateTracker;
 import org.bukkit.Material;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
-
-import javax.sound.midi.Track;
-import java.util.List;
-import java.util.UUID;
-
-import static org.bukkit.Bukkit.reload;
 
 public class Command implements CommandExecutor {
 

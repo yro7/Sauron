@@ -1,10 +1,8 @@
 package fr.yronusa.ultimatetracker.Commands;
 
-import fr.yronusa.ultimatetracker.Database;
 import mc.obliviate.inventory.Gui;
 import mc.obliviate.inventory.Icon;
 import org.bukkit.Material;
-import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.inventory.ItemStack;

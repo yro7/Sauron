@@ -4,13 +4,10 @@ import fr.yronusa.ultimatetracker.Database;
 import fr.yronusa.ultimatetracker.TrackedItem;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
-
-import javax.sound.midi.Track;
 import java.sql.Timestamp;
 import java.util.UUID;
 

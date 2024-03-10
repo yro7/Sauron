@@ -1,17 +1,9 @@
 package fr.yronusa.ultimatetracker.Config;
 
 import fr.yronusa.ultimatetracker.UltimateTracker;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.nodes.Node;
-import org.yaml.snakeyaml.nodes.SequenceNode;
 
-import javax.sound.midi.Track;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.util.List;
-import java.util.Map;
 
 public class Config {
 
