@@ -4,15 +4,28 @@ database:
   database: ULTIMATE_TRACKER
   user: root
   password: prout
+rules:
+  ruleA:
+    contains:
+      - custom
+      - prout
+    materials:
+      - DIAMOND_SWORD
+    flags:
+      - HIDE_UNBREAKABLE
 settings:
   delay: 60
 messages:
-  dupe-found-player: "OMG DUPE FOUND"
+  dupe-found-player: "§7* §cYour item has been flagged has duplicated, please contact an administrator."
   commands:
+    track:
+      stacked: "§7* §cPlease unstack the item before tracking it."
+      success: "§7* §aItem successfully tracked !"
+      fail: "§7* §cAn error has occured, please see console."
+      empty: "§7* §cYou need to hold an item."
+      already-tracked: "§7* §cThis item is already tracked."
     reload: "§7* §aPlugin successfully reloaded."
     help:
-      - "§2§l---|--- §a§lUltimateTracker §2§l---|---"
-      - "§aAuthor: Yronusa"
       - "§aCommands:"
       - ""
       - "§7* §a/ut: §7Show this menu."

@@ -1,6 +1,7 @@
 package fr.yronusa.ultimatetracker;
 
 import fr.yronusa.ultimatetracker.Config.Config;
+import fr.yronusa.ultimatetracker.Config.TrackingRule;
 import fr.yronusa.ultimatetracker.Event.ItemStartTrackingEvent;
 import fr.yronusa.ultimatetracker.Event.ItemUpdateDateEvent;
 import org.bukkit.Bukkit;
@@ -45,16 +46,17 @@ public class TrackedItem {
     }
 
     public static boolean shouldBeTrack(ItemMutable i) {
-        if(i.getItem() != null){
+        /**if(i.getItem() != null){
             return true;
         }
 
         return false;
-        /**
-        for(TrackingRule rule : UltimateTracker.getTrackingRules()){
+        **/
+        for(TrackingRule rule : Config.trackingRules){
+            rule.print();
             if(rule.test(i.getItem())) return true;
         }
-        return false;**/
+        return false;
     }
 
     public UUID getOriginalID() {
@@ -144,8 +146,10 @@ public class TrackedItem {
     }
 
     private boolean shouldUpdate() {
-
-        return true;
+        Timestamp itemTimestamp = this.getLastUpdateItem();
+        Timestamp actualTime = UltimateTracker.getActualDate();
+        long difference = actualTime.getTime() - itemTimestamp.getTime();
+        return difference / 1000 >= Config.delay;
     }
 
 

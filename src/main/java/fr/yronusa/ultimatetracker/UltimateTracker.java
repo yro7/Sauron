@@ -2,30 +2,16 @@ package fr.yronusa.ultimatetracker;
 
 import fr.yronusa.ultimatetracker.Commands.Command;
 import fr.yronusa.ultimatetracker.Config.Config;
-import fr.yronusa.ultimatetracker.Config.TrackingRule;
-import mc.obliviate.inventory.InventoryAPI;
-import org.apache.commons.lang3.Validate;
-import org.bukkit.Bukkit;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitScheduler;
-import org.jetbrains.annotations.NotNull;
 
-import javax.sound.midi.Track;
-import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
-import java.util.concurrent.Executor;
 
 public final class UltimateTracker extends JavaPlugin {
 
     private static UltimateTracker instance;
 
-    public static List<TrackingRule> rules;
 
 
     public static UltimateTracker getInstance(){
@@ -43,7 +29,6 @@ public final class UltimateTracker extends JavaPlugin {
         saveDefaultConfig();
         registerEvents();
         registerCommands();
-        UltimateTracker.rules = TrackingRule.getTrackingRulesFromConfig();
         verifyDatabase();
 
 
@@ -51,9 +36,7 @@ public final class UltimateTracker extends JavaPlugin {
 
     public static Timestamp getActualDate(){
         LocalDateTime currentDateTime = LocalDateTime.now();
-        LocalDateTime roundedDateTime = currentDateTime.truncatedTo(ChronoUnit.MINUTES);
-        System.out.println("actual date:");
-        System.out.println(Timestamp.valueOf(roundedDateTime).toString());
+        LocalDateTime roundedDateTime = currentDateTime.truncatedTo(ChronoUnit.SECONDS);
         return Timestamp.valueOf(roundedDateTime);
     }
 
@@ -93,11 +76,8 @@ public final class UltimateTracker extends JavaPlugin {
         // Plugin shutdown logic
     }
 
-    public static Executor getMainThreadExecutor(Plugin plugin, BukkitScheduler scheduler){
-        Validate.notNull(plugin, "Plugin cannot be null!");
-        return (command) -> {
-            Validate.notNull(command, "Command cannot be null!");
-            scheduler.runTask(plugin, command);
-        };
+    public static String getVersion(){
+
+        return "0.1";
     }
 }

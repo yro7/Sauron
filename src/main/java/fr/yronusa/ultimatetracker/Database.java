@@ -32,10 +32,6 @@ public class Database {
     }
 
     public static void add(TrackedItem trackedItem) {
-
-        System.out.println("ADDING NEW ITEM : " + trackedItem.toString());
-        System.out.println("item uuid: " + trackedItem.getOriginalID().toString());
-
         String itemBase64 = trackedItem.getBase64();
         MysqlDataSource dataSource;
 
@@ -64,7 +60,6 @@ public class Database {
                     preparedStatement.setTimestamp(3, trackedItem.getLastUpdateItem());
                     preparedStatement.setString(4, "TODO");
                     preparedStatement.setInt(5, 0);
-                    System.out.println(preparedStatement);
 
                     int i = preparedStatement.executeUpdate();
                     if (i > 0) {
@@ -82,13 +77,6 @@ public class Database {
 
 
     }
-
-    public static CompletableFuture<Timestamp> getLastUpdateCF(UUID uuid){
-        return CompletableFuture.supplyAsync(() -> {
-            return Database.getLastUpdate(uuid); // blocking method
-        });
-    }
-
 
     public static Timestamp getLastUpdate(UUID uuid){
 
@@ -185,7 +173,6 @@ public class Database {
                     PreparedStatement preparedStatement = conn.prepareStatement(statement);
                     preparedStatement.setTimestamp(1, newDate);
                     preparedStatement.setString(2, uuid.toString());
-                    System.out.println(preparedStatement);
 
                     int i = preparedStatement.executeUpdate();
                     if (i > 0) {
@@ -203,23 +190,6 @@ public class Database {
 
 
     }
-
-    public static void handleDupe(TrackedItem item) {
-        System.out.println("HANDLE DUPE METHOD 1");
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                Timestamp dtbTS = Database.getLastUpdate(item.getOriginalID());
-                Timestamp itemTS = item.getLastUpdateItem();
-                System.out.println("HANDLING DUPE ASYNC METHOD");
-                if(itemTS.before(dtbTS)){
-                    System.out.println("DUPE DETECTED");
-                    item.quarantine();
-                }
-            }
-        }.runTaskAsynchronously(UltimateTracker.getInstance());
-
-        }
 
     public static boolean isDuplicated(TrackedItem item){
         Timestamp databaseTimestamp = Database.getLastUpdate(item.getOriginalID());

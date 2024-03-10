@@ -1,6 +1,7 @@
 package fr.yronusa.ultimatetracker.Config;
 
 import fr.yronusa.ultimatetracker.UltimateTracker;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.nodes.Node;
@@ -15,6 +16,8 @@ import java.util.Map;
 public class Config {
 
     public static FileConfiguration config;
+
+    public static List<TrackingRule> trackingRules;
 
     // PLugin settings
     public static int delay;
@@ -37,8 +40,6 @@ public class Config {
     public static String trackSuccess;
     public static String trackFailed;
     public static String trackEmpty;
-
-    public static List<TrackingRule> trackingRules;
 
 
 

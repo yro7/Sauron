@@ -24,17 +24,14 @@ public class Command implements CommandExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, org.bukkit.command.@NotNull Command command, @NotNull String s, @NotNull String[] strings) {
        if(!(commandSender instanceof Player p)){
-           commandSender.sendMessage("§cCette commande doit être utilisée en jeu!");
+           commandSender.sendMessage("§cThis is a player only command, sorry.");
            return true;
        }
 
         if(strings.length == 0){
-           for(String msg : Config.helpCommand){
-               p.sendMessage(msg);
-           }
-           return true;
+            help(p);
+            return true;
        }
-
 
         switch(strings[0].toLowerCase()){
             case "save":
@@ -58,10 +55,23 @@ public class Command implements CommandExecutor {
             case "reload":
                 reload(p);
                 break;
+            default:
+                help(p);
+                break;
 
         }
 
         return true;
+    }
+
+    private void help(Player p) {
+        p.sendMessage("§2§l---|--- §a§lUltimateTracker §2§l---|---");
+        p.sendMessage("§aCreated by Yronusa for Vikicraft and Community");
+        p.sendMessage( "§aVersion : " + UltimateTracker.getVersion());
+        for(String msg : Config.helpCommand){
+
+            p.sendMessage(msg);
+        }
     }
 
     private void track(Player p) {
