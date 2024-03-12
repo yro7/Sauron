@@ -22,6 +22,7 @@ public class SavedItemsGUI extends Gui {
 
     @Override
     public void onOpen(InventoryOpenEvent event) {
+            System.out.println("prout error");
 
         int a = this.page*45;
         int b = a + 45;
@@ -34,7 +35,6 @@ public class SavedItemsGUI extends Gui {
          //   items = Database.getSavedItems(a, b);
         }
         catch(Exception e){
-            System.out.println("prout error");
             return;
         }
 

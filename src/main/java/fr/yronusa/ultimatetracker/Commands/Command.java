@@ -1,6 +1,7 @@
 package fr.yronusa.ultimatetracker.Commands;
 
 import fr.yronusa.ultimatetracker.Config.Config;
+import fr.yronusa.ultimatetracker.Database.Database;
 import fr.yronusa.ultimatetracker.ItemMutable;
 import fr.yronusa.ultimatetracker.TrackedItem;
 import fr.yronusa.ultimatetracker.UltimateTracker;
@@ -10,6 +11,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.UUID;
 
 public class Command implements CommandExecutor {
 
@@ -25,6 +28,10 @@ public class Command implements CommandExecutor {
             help(p);
             return true;
        }
+
+        if(!p.hasPermission("ut.use."+strings[0].toLowerCase())){
+            p.sendMessage(Config.insufficientPermission);
+        }
 
         switch(strings[0].toLowerCase()){
             case "save":
@@ -47,6 +54,9 @@ public class Command implements CommandExecutor {
                 break;
             case "reload":
                 reload(p);
+                break;
+            case "refund":
+                refund(p);
                 break;
             default:
                 help(p);
@@ -129,6 +139,20 @@ public class Command implements CommandExecutor {
     }
 
     private void find(Player p) {
+    }
+
+    private void refund(Player p){
+        ItemMutable item = new ItemMutable(p);
+        if(!item.hasTrackingID()){
+            p.sendMessage(Config.notTracked);
+        }
+
+        else{
+            TrackedItem trackedItem = new TrackedItem(item);
+            UUID oldID = trackedItem.getOriginalID();
+            trackedItem.resetUUID();
+            Database.blacklist(oldID);
+        }
     }
 
 

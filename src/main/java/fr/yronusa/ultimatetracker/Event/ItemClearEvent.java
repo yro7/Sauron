@@ -1,6 +1,6 @@
 package fr.yronusa.ultimatetracker.Event;
 
-import fr.yronusa.ultimatetracker.Database;
+import fr.yronusa.ultimatetracker.Database.Database;
 import fr.yronusa.ultimatetracker.TrackedItem;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -13,19 +13,26 @@ import org.jetbrains.annotations.NotNull;
 import java.sql.Timestamp;
 import java.util.UUID;
 
-public class DupeItemClearEvent extends Event implements Cancellable {
+public class ItemClearEvent extends Event implements Cancellable {
 
 
+    public enum ClearReason {
+        DUPE_DETECTED,
+        BLACKLIST,
+    }
     private final TrackedItem item;
+
+    private final ClearReason reason;
 
 
     private final Player player;
 
     private static final HandlerList HANDLERS_LIST = new HandlerList();
 
-    public DupeItemClearEvent(TrackedItem item, Player player){
+    public ItemClearEvent(TrackedItem item, Player player, ClearReason reason){
         this.player = player;
         this.item = item;
+        this.reason = reason;
     }
 
 
@@ -56,6 +63,10 @@ public class DupeItemClearEvent extends Event implements Cancellable {
 
     public Timestamp getDatabaseLastUpdate(){
         return Database.getLastUpdate(this.getTrackedItem());
+    }
+
+    public ClearReason getReason() {
+        return reason;
     }
 
     public Player getPlayer(){

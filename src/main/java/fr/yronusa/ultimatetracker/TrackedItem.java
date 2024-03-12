@@ -2,6 +2,9 @@ package fr.yronusa.ultimatetracker;
 
 import fr.yronusa.ultimatetracker.Config.Config;
 import fr.yronusa.ultimatetracker.Config.TrackingRule;
+import fr.yronusa.ultimatetracker.Database.Database;
+import fr.yronusa.ultimatetracker.Event.DupeDetectedEvent;
+import fr.yronusa.ultimatetracker.Event.ItemClearEvent;
 import fr.yronusa.ultimatetracker.Event.ItemStartTrackingEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -110,9 +113,9 @@ public class TrackedItem {
         return this.getItemMutable().getLastUpdate();
     }
 
-    public void update() {
+    public void update(boolean forceUpdate) {
 
-        if(!shouldUpdate()){
+        if(!forceUpdate && !shouldUpdate()){
             return;
         }
 
@@ -129,7 +132,15 @@ public class TrackedItem {
                     this.getPlayer().sendMessage(Config.dupeFoundPlayer);
 
                 }
-                this.quarantine();
+
+                DupeDetectedEvent dupeDetectEvent = new DupeDetectedEvent(this, this.getPlayer());
+                ItemClearEvent itemClearEvent = new ItemClearEvent(this, this.getPlayer(), ItemClearEvent.ClearReason.DUPE_DETECTED);
+                Bukkit.getPluginManager().callEvent(dupeDetectEvent);
+                Bukkit.getPluginManager().callEvent(itemClearEvent);
+                if(!itemClearEvent.isCancelled()){
+                    this.quarantine();
+                }
+
             }
 
             else{
@@ -137,6 +148,10 @@ public class TrackedItem {
                 this.getItemMutable().updateDate(newDate);
             }
         });
+    }
+
+    public void update() {
+        update(false);
     }
 
     private boolean shouldUpdate() {
@@ -151,16 +166,10 @@ public class TrackedItem {
         try {
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             BukkitObjectOutputStream dataOutput = new BukkitObjectOutputStream(outputStream);
-
-            // Write the size of the inventory
             dataOutput.writeInt(items.length);
-
-            // Save every element in the list
             for (int i = 0; i < items.length; i++) {
                 dataOutput.writeObject(items[i]);
             }
-
-            // Serialize that array
             dataOutput.close();
             return Base64Coder.encodeLines(outputStream.toByteArray());
         } catch (Exception e) {
@@ -172,46 +181,11 @@ public class TrackedItem {
         this.getItemMutable().delete();
     }
 
-
-    /**  private void antiDupeCheck(String s) {
-        FileConfiguration config  = UltimateTracker.getInstance().getConfig();
-        boolean enabled = Boolean.parseBoolean(config.getString("database.enabled"));
-        if(s.equals("destruction") && enabled){
-            Database db = new Database();
-            db.addOldItem(this);
-
-        }
-        // CHECK IF ID BELONGS TO "OLD DESTRUCTED IDs" AND IF YES, LOG DUPE MESSAGE
+    public void resetUUID() {
+        UUID newID = UUID.randomUUID();
+        this.originalID = newID;
+        this.getItemMutable().changeUUID(newID);
+        this.update(true);
     }
-
-
-
-    public void log(String s) {
-        // SYSTEM DE LOG PAS ENCORE FINI,
-        // A terme il enregistrera le log dans un fichier.
-        Player p = this.getPlayer();
-        String pName = p.getName();
-        String pId = p.getUniqueId().toString();
-        String player = pName + " (" + pId + ")";
-
-        UUID id = this.getUUID();
-        String type = this.getType().toString();
-
-        Location loc = p.getLocation();
-        int x = (int) loc.getX();
-        int y = (int) loc.getY();
-        int z = (int) loc.getZ();
-        String world = loc.getWorld().getName();
-        String location = "x: " + x + " y:" + y + " z: " + z + " in: " + world;
-
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
-        LocalDateTime now = LocalDateTime.now();
-        String date = "[" + now + "]";
-
-        String log = date + " " + player + " " + s + " " + type + " at " + location + ". Item-id: " + id;
-        System.out.println(log);
-    }**/
-
-
 
 }

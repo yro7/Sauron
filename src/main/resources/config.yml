@@ -1,9 +1,10 @@
 database:
+  type: mysql
   host: localhost
   port: 3306
   database: ULTIMATE_TRACKER
   user: root
-  password: prout
+  password: toor
 rules:
   ruleA:
     contains:
@@ -13,11 +14,23 @@ rules:
       - DIAMOND_SWORD
     flags:
       - HIDE_UNBREAKABLE
+  ruleB:
+    contains:
+      - test
 settings:
   delay: 60
+
+
+
 messages:
   dupe-found-player: "§7* §cYour item has been flagged has duplicated, please contact an administrator."
+  not-tracked: "§7* §cThis item is not tracked."
   commands:
+    insufficient-permission: "§7* §cYou do not have the permission to use that command."
+    refund:
+      success: "§7* §aThe item has been successfully refunded."
+    blacklist:
+      success: "§7* §cThe item has been blacklisted."
     track:
       stacked: "§7* §cPlease unstack the item before tracking it."
       success: "§7* §aItem successfully tracked !"

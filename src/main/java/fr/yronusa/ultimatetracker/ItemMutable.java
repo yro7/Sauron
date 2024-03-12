@@ -105,6 +105,13 @@ public class ItemMutable {
         this.item.setAmount(0);
     }
 
+    public void changeUUID(UUID uuid){
+        ItemStack i = this.getItem();
+        SafeNBT nbt = SafeNBT.get(i);
+        nbt.setString("ut_id", uuid.toString());
+        this.update(nbt.apply(i));
+    }
+
 
 
 }

@@ -1,6 +1,7 @@
 package fr.yronusa.ultimatetracker.Event;
 
 import fr.yronusa.ultimatetracker.TrackedItem;
+import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.ItemStack;
@@ -9,7 +10,8 @@ import org.jetbrains.annotations.NotNull;
 import java.sql.Timestamp;
 import java.util.UUID;
 
-public class ItemUpdateDateEvent extends Event {
+public class ItemUpdateDateEvent extends Event implements Cancellable {
+
 
     private final TrackedItem item;
 
@@ -53,4 +55,12 @@ public class ItemUpdateDateEvent extends Event {
         return this.newDate;
     }
 
+    @Override
+    public boolean isCancelled() {
+        return false;
+    }
+
+    @Override
+    public void setCancelled(boolean b) {
+    }
 }

@@ -4,5 +4,5 @@ main: fr.yronusa.ultimatetracker.UltimateTracker
 api-version: '1.19'
 commands:
   ut:
-    description: prout.
+    description: help command
     permission: ut.use

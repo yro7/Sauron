@@ -39,13 +39,10 @@ public class TrackingRule implements Predicate<ItemStack> {
             res.add(new TrackingRule(s));
         }
 
-        System.out.print("returning : " + res);
         return res;
     }
 
     public TrackingRule(String s) {
-
-        System.out.print("generating new tracking rule from string " + s);
 
         this.materials = new ArrayList<>();
         this.flags = new ArrayList<>();
@@ -56,13 +53,6 @@ public class TrackingRule implements Predicate<ItemStack> {
         List<String> materials;
         List<String> flags;
 
-        System.out.print("devbug AAA");
-        System.out.println(s +".contains");
-        System.out.print(s);
-        System.out.print("prout " + configSection.getStringList("ruleA.contains"));
-        System.out.println(configSection.getStringList(s +".contains"));
-        System.out.println(configSection.getStringList(s +".has_nbt"));
-        System.out.println(configSection.getStringList(s +".materials"));
 
         // try{
         this.contains = configSection.getStringList(s +".contains");
@@ -78,13 +68,6 @@ public class TrackingRule implements Predicate<ItemStack> {
         for(String mat : materials){
             this.materials.add(Material.valueOf(mat));
         }
-
-
-        /**  } catch(Exception e){
-         System.out.print("§4[UltimateTracker] §cError: you have an error in your rules config section.");
-         e.printStackTrace();
-         }
-         **/
 
 
 
