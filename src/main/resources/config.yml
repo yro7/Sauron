@@ -19,6 +19,8 @@ rules:
       - test
 settings:
   delay: 60
+  track-stacked-items: false
+  clear-stacked-items: true
 
 
 

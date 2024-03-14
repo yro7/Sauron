@@ -26,7 +26,11 @@ public class Database {
     }
 
 
-    public static Connection getConnection()  {
+    public static Connection getConnection() throws SQLException {
+        if(!connection.isValid(2)){
+            UltimateTracker.yro.sendMessage("§C NEW CONNEXION (TO DATABASE)");
+            connect();
+        }
         return connection;
     }
 
@@ -141,8 +145,9 @@ public class Database {
         });
         return null;
     }
-    public static void update(UUID uuid, Timestamp newDate) {
+    public static void update(TrackedItem item, Timestamp newDate) {
 
+        String verif = "SELECT 1 FROM TRACKED_ITEMS WHERE UUID = ?";
         String statement = "UPDATE TRACKED_ITEMS SET LAST_UPDATE = ? WHERE UUID = ?";
         Bukkit.getScheduler().runTaskAsynchronously(UltimateTracker.getInstance(), new Runnable() {
             @Override
@@ -150,9 +155,20 @@ public class Database {
 
                 try {
                     Connection conn = getConnection();
+                    String uuid = item.getOriginalID().toString();
+                    PreparedStatement verifPresence = conn.prepareStatement(verif);
+                    verifPresence.setString(1, uuid);
+
                     PreparedStatement preparedStatement = conn.prepareStatement(statement);
                     preparedStatement.setTimestamp(1, newDate);
-                    preparedStatement.setString(2, uuid.toString());
+                    preparedStatement.setString(2, uuid);
+
+                    ResultSet resultSet = verifPresence.executeQuery();
+                    if(!resultSet.next()){
+                        Database.add(item);
+                        return;
+                    }
+
 
                     int i = preparedStatement.executeUpdate();
                     if (i > 0) {

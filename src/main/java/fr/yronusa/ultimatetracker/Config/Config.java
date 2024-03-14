@@ -15,6 +15,9 @@ public class Config {
     // PLugin settings
     public static int delay;
 
+    public static boolean trackStackedItems;
+    public static boolean clearStackedItems;
+
     // Database data
 
     public static Database.TYPE databaseType;
@@ -70,6 +73,8 @@ public static boolean load(){
 
     private static void loadSettings(){
         delay = config.getInt("settings.delay");
+        clearStackedItems = config.getBoolean("settings.clear-stacked-items");
+        trackStackedItems = config.getBoolean("settings.track-stacked-items");
     }
 
     private static void loadMessages() {

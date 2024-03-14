@@ -66,6 +66,11 @@ public class ItemMutable {
         return nbt.hasKey("ut_id");
     }
 
+    public static boolean hasTrackingID(ItemStack i){
+        SafeNBT nbt = SafeNBT.get(i);
+        return nbt.hasKey("ut_id");
+    }
+
     public void setTrackable(UUID id, Timestamp newDate){
 
         if(this.hasTrackingID()){

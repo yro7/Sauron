@@ -26,14 +26,6 @@ public class TrackedItem {
     public UUID originalID;
     public Timestamp lastUpdate; // Last update of the item at format YYYY.MM.DD.hh.mm
 
-    // Used to create a new Tracked Item.
-    public TrackedItem(ItemMutable item, UUID originalID, Timestamp date) {
-        this.item = item;
-        this.originalID = originalID;
-        this.lastUpdate = date;
-    }
-
-
     // Used to get the associated TrackedItem from an ItemMutable directly.
     public TrackedItem(ItemMutable item) {
         this.item = item;
@@ -43,16 +35,16 @@ public class TrackedItem {
     }
 
     public static boolean shouldBeTrack(ItemMutable i) {
-        /**if(i.getItem() != null){
-            return true;
-        }
 
-        return false;
-        **/
+        ItemStack item = i.getItem();
+        if(item == null) return false;
+        if(!Config.trackStackedItems && item.getAmount() != 1) return false;
+
         for(TrackingRule rule : Config.trackingRules){
             rule.print();
             if(rule.test(i.getItem())) return true;
         }
+
         return false;
     }
 
@@ -119,10 +111,18 @@ public class TrackedItem {
             return;
         }
 
+        if(this.getItem() != null && Config.clearStackedItems && this.getItem().getAmount() > 1){
+            ItemClearEvent itemClearEvent = new ItemClearEvent(this, this.getPlayer(), ItemClearEvent.ClearReason.STACKED_ITEM);
+            Bukkit.getPluginManager().callEvent(itemClearEvent);
+            if(!itemClearEvent.isCancelled()){
+                this.quarantine();
+            }
+        }
+
         Timestamp newDate = UltimateTracker.getActualDate();
         CompletableFuture<Boolean> isDupli = CompletableFuture.supplyAsync(() -> Database.isDuplicated(this));
         isDupli.exceptionally(error -> {
-            Database.update(this.getOriginalID(), newDate);
+            Database.update(this, newDate);
             this.getItemMutable().updateDate(newDate);
             return false;
         });
@@ -144,7 +144,7 @@ public class TrackedItem {
             }
 
             else{
-                Database.update(this.getOriginalID(), newDate);
+                Database.update(this, newDate);
                 this.getItemMutable().updateDate(newDate);
             }
         });

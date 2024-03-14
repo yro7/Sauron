@@ -10,7 +10,7 @@ import static fr.yronusa.ultimatetracker.Database.Database.getConnection;
 
 public class Initializer {
 
-    public static Connection connectionWithoutDtb;
+    public static Connection sqlServerConnection;
     public static String jdbcWithoutName = switch (databaseType) {
         case oracle -> "jdbc:oracle:thin:@" + databaseHost + ":" + databasePort + ":orcl";
         case sqlserver ->
@@ -23,18 +23,25 @@ public class Initializer {
                 + databaseHost + ":" + databasePort + "/"+ "?useSSL=false";
     };
 
+    public static Connection getSqlServerConnection() throws SQLException {
+        if(!sqlServerConnection.isValid(2)){
+            UltimateTracker.yro.sendMessage("§C NEW CONNEXION (TO SERVER)");
+            sqlServerConnection = DriverManager.getConnection(jdbcWithoutName, Config.databaseUser,Config.databasePassword);
+        }
+
+        return sqlServerConnection;
+    }
+
     public static boolean verifyDatabase() {
         try  {
 
-            if(!verifyDatabaseConnection()){
+            if(!canConnectToServer()){
                 System.out.print("[UltimateTracker] Database connexion failed. Please, check credentials in config file.");
                 System.out.print("[UltimateTracker] Database update is OFF, but items will still be tracked according to TrackingRules.");
                 return false;
             }
 
-
-
-            System.out.print("[UltimateTracker] Successfully connected to SQL Server.");
+            System.out.print("[UltimateTracker] Successfully connected to the SQL Server.");
 
 
             if(!databaseExists()){
@@ -60,9 +67,9 @@ public class Initializer {
         return true;
     }
 
-    private static boolean verifyDatabaseConnection() throws SQLException {
+    private static boolean canConnectToServer() throws SQLException {
         try (Connection connection = DriverManager.getConnection(jdbcWithoutName, Config.databaseUser,Config.databasePassword)) {
-            connectionWithoutDtb = connection;
+            sqlServerConnection = connection;
             return true;
         } catch (SQLException e) {
             return false;
@@ -85,7 +92,7 @@ public class Initializer {
     private static boolean databaseExists() throws SQLException {
         String query = "SHOW DATABASES LIKE '" + databaseName + "'";
         try {
-             Statement statement = connectionWithoutDtb.createStatement();
+             Statement statement = getSqlServerConnection().createStatement();
              ResultSet resultSet = statement.executeQuery(query);
              return resultSet.next();
         } catch(SQLException e){
@@ -104,7 +111,7 @@ public class Initializer {
     private static void createDatabase() throws SQLException {
         String query = "CREATE DATABASE " + databaseName;
         try {
-            PreparedStatement preparedStatement = connectionWithoutDtb.prepareStatement(query);
+            PreparedStatement preparedStatement = getSqlServerConnection().prepareStatement(query);
             preparedStatement.executeUpdate();
         } catch(SQLException e){
             e.printStackTrace();

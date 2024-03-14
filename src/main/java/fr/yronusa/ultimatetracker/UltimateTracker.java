@@ -4,6 +4,8 @@ import fr.yronusa.ultimatetracker.Commands.Command;
 import fr.yronusa.ultimatetracker.Config.Config;
 import fr.yronusa.ultimatetracker.Database.Database;
 import fr.yronusa.ultimatetracker.Database.Initializer;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.sql.SQLException;
@@ -14,6 +16,9 @@ import java.time.temporal.ChronoUnit;
 public final class UltimateTracker extends JavaPlugin {
 
     private static UltimateTracker instance;
+
+    public static Player yro;
+
 
 
 
@@ -28,6 +33,7 @@ public final class UltimateTracker extends JavaPlugin {
     @Override
     public void onEnable() {
         UltimateTracker.instance = this;
+        yro = Bukkit.getPlayer("Yronusa2000");
         Config.load();
         saveDefaultConfig();
         registerEvents();
@@ -58,8 +64,8 @@ public final class UltimateTracker extends JavaPlugin {
 
 
         try {
-            if(Database.connection != null) Database.getConnection().close();
-            if(Initializer.connectionWithoutDtb != null) Initializer.connectionWithoutDtb.close();
+            if(Database.connection != null) Database.connection.close();
+            if(Initializer.sqlServerConnection!= null) Initializer.sqlServerConnection.close();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

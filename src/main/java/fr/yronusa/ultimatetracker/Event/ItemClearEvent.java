@@ -19,6 +19,7 @@ public class ItemClearEvent extends Event implements Cancellable {
     public enum ClearReason {
         DUPE_DETECTED,
         BLACKLIST,
+        STACKED_ITEM,
     }
     private final TrackedItem item;
 
