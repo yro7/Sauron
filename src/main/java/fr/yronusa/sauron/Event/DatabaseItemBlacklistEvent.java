@@ -10,15 +10,12 @@ import java.sql.Timestamp;
 import java.util.UUID;
 
 public class DatabaseItemBlacklistEvent extends Event {
-
-
     private final TrackedItem item;
     private static final HandlerList HANDLERS_LIST = new HandlerList();
 
     public DatabaseItemBlacklistEvent(TrackedItem item){
         this.item = item;
     }
-
 
     @Override
     public @NotNull HandlerList getHandlers() {
