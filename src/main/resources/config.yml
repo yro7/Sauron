@@ -9,23 +9,19 @@ rules:
   ruleA:
     contains:
       - custom
-      - prout
+      - OP
     materials:
       - DIAMOND_SWORD
     flags:
       - HIDE_UNBREAKABLE
-  ruleB:
-    contains:
-      - test
+    unbreakable: true
 settings:
-  delay: 60
+  delay: 10
   track-stacked-items: false
   clear-stacked-items: true
-
-
-
 messages:
   dupe-found-player: "§7* §cYour item has been flagged has duplicated, please contact an administrator."
+  stacked-item-player: "§7* §cHaving such stacked item is illegal, please contact an administrator."
   not-tracked: "§7* §cThis item is not tracked."
   commands:
     insufficient-permission: "§7* §cYou do not have the permission to use that command."
@@ -36,7 +32,7 @@ messages:
     track:
       stacked: "§7* §cPlease unstack the item before tracking it."
       success: "§7* §aItem successfully tracked !"
-      fail: "§7* §cAn error has occured, please see console."
+      fail: "§7* §cAn error has occurred, please see console."
       empty: "§7* §cYou need to hold an item."
       already-tracked: "§7* §cThis item is already tracked."
     reload: "§7* §aPlugin successfully reloaded."

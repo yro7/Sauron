@@ -32,20 +32,20 @@ public class Initializer {
         return sqlServerConnection;
     }
 
-    public static boolean verifyDatabase() {
+    public static boolean initializeDatabase() {
         try  {
 
             if(!canConnectToServer()){
-                System.out.print("[UltimateTracker] Database connexion failed. Please, check credentials in config file.");
-                System.out.print("[UltimateTracker] Database update is OFF, but items will still be tracked according to TrackingRules.");
+                System.out.println("[UltimateTracker] Database connexion failed. Please, check credentials in config file.");
+                System.out.println("[UltimateTracker] Database update is OFF, but items will still be tracked according to TrackingRules.");
                 return false;
             }
 
-            System.out.print("[UltimateTracker] Successfully connected to the SQL Server.");
+            System.out.println("[UltimateTracker] Successfully connected to the SQL Server.");
 
 
             if(!databaseExists()){
-                System.out.print("[UltimateTracker] Database do not exists, creating ULTIMATE_TRACKER database...");
+                System.out.println("[UltimateTracker] Database do not exists, creating ULTIMATE_TRACKER database...");
                 createDatabase();
             }
 
@@ -55,15 +55,21 @@ public class Initializer {
             Database.connect();
 
             if(!tableExists()){
-                System.out.print("[UltimateTracker] Table \"TRACKED_ITEMS\" do not exist, creating it...");
+                System.out.println("[UltimateTracker] Table \"TRACKED_ITEMS\" do not exist, creating it...");
                 createTable();
             }
         } catch (SQLException e) {
-            System.out.print("[UltimateTracker] Database update is OFF, but items will still be tracked according to TrackingRules.");
+            System.out.println("[UltimateTracker] Database update is OFF, but items will still be tracked according to TrackingRules.");
             return false;
         }
 
-        System.out.print("[UltimateTracker] Database ON !");
+        try{
+            sqlServerConnection.close();
+        } catch(Exception e){
+            e.printStackTrace();
+        }
+
+        System.out.println("[UltimateTracker] Database ON !");
         return true;
     }
 

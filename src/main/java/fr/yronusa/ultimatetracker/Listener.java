@@ -1,5 +1,8 @@
 package fr.yronusa.ultimatetracker;
 
+import fr.yronusa.ultimatetracker.Config.Config;
+import fr.yronusa.ultimatetracker.Event.DupeDetectedEvent;
+import fr.yronusa.ultimatetracker.Event.StackedItemDetectedEvent;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
@@ -28,8 +31,7 @@ public class Listener implements org.bukkit.event.Listener {
     }
 
     @EventHandler
-    public void onContainerOpen(InventoryOpenEvent e){
-        System.out.print("inventory open");
+    public void onContainerOpen(InventoryOpenEvent e ){
         ItemStack[] content = e.getInventory().getContents();
         Inventory inventory = e.getInventory();
 
@@ -40,11 +42,29 @@ public class Listener implements org.bukkit.event.Listener {
                 continue;
             }
             if(ItemMutable.hasTrackingID(item)){
-                System.out.print("TrackedItem detected at position " + position);
                 ItemMutable itemMutable = new ItemMutable(item, inventory, position);
                 (new TrackedItem(itemMutable)).update(false);
             }
         }
     }
+
+    @EventHandler
+    public void onDupeDetected(DupeDetectedEvent e){
+        System.out.println("DUPLICATION FOUND");
+        if(e.getPlayer() != null){
+            e.getPlayer().sendMessage(Config.dupeFoundPlayer);
+        }
+
+        e.getTrackedItem().quarantine();
+    }
+
+    @EventHandler
+    public void onStackedItemDetected(StackedItemDetectedEvent e){
+        e.getTrackedItem().quarantine();
+        if(e.getPlayer() != null){
+            e.getPlayer().sendMessage(Config.stackedItemPlayer);
+        }
+    }
+
 
 }

@@ -46,9 +46,6 @@ public class Command implements CommandExecutor {
             case "list":
                 list(p, strings);
                 break;
-            case "quarantines":
-                quarantines(p);
-                break;
             case "track":
                 track(p);
                 break;
@@ -151,13 +148,10 @@ public class Command implements CommandExecutor {
             TrackedItem trackedItem = new TrackedItem(item);
             UUID oldID = trackedItem.getOriginalID();
             trackedItem.resetUUID();
-            Database.blacklist(oldID);
+            Database.blacklist(trackedItem, oldID);
         }
     }
 
-
-    private void quarantines(Player p) {
-    }
 
     public void reload(Player p){
         UltimateTracker.getInstance().reloadConfig();

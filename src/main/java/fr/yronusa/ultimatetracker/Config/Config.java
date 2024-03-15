@@ -32,6 +32,7 @@ public class Config {
 
     public static String notTracked;
     public static String dupeFoundPlayer;
+    public static String stackedItemPlayer;
     public static List<String> helpCommand;
     public static String reloadSuccessful;
 
@@ -44,15 +45,13 @@ public class Config {
     public static String insufficientPermission;
 
 
-
-
-
-public static boolean load(){
+    public static boolean load(){
         try{
             config = UltimateTracker.getInstance().getConfig();;
             loadMessages();
             loadDatabase();
             loadSettings();
+            System.out.println("getting tracking rules...");
             trackingRules = TrackingRule.getTrackingRulesFromConfig();
 
             return true;
@@ -80,6 +79,7 @@ public static boolean load(){
     private static void loadMessages() {
         notTracked = get("messages.not-tracked");
         dupeFoundPlayer = get("messages.dupe-found-player");
+        stackedItemPlayer = get("messages.stacked-item-player");
         helpCommand = config.getStringList("messages.commands.help");
         reloadSuccessful = get("messages.commands.reload");
         insufficientPermission = get("messages.commands.insufficient-permission");

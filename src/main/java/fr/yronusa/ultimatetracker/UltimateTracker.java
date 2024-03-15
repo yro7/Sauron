@@ -33,12 +33,14 @@ public final class UltimateTracker extends JavaPlugin {
     @Override
     public void onEnable() {
         UltimateTracker.instance = this;
-        yro = Bukkit.getPlayer("Yronusa2000");
-        Config.load();
+        if(!Bukkit.getOnlinePlayers().isEmpty()){
+            yro = Bukkit.getPlayer("Yronusa2000");
+        }
         saveDefaultConfig();
+        Config.load();
         registerEvents();
         registerCommands();
-        database = Initializer.verifyDatabase();
+        database = Initializer.initializeDatabase();
 
 
     }
@@ -63,9 +65,10 @@ public final class UltimateTracker extends JavaPlugin {
         // Plugin shutdown logic
 
 
+        System.out.println("[UltimateTracker] Closing database connection.");
         try {
-            if(Database.connection != null) Database.connection.close();
-            if(Initializer.sqlServerConnection!= null) Initializer.sqlServerConnection.close();
+            if(Database.connection != null && !Database.connection.isClosed()) Database.connection.close();
+            if(Initializer.sqlServerConnection != null && !Initializer.sqlServerConnection.isClosed()) Initializer.sqlServerConnection.close();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

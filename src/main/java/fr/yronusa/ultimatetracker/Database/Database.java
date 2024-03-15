@@ -1,5 +1,7 @@
 package fr.yronusa.ultimatetracker.Database;
 
+import fr.yronusa.ultimatetracker.Event.DatabaseItemAddedEvent;
+import fr.yronusa.ultimatetracker.Event.DatabaseItemBlacklistEvent;
 import fr.yronusa.ultimatetracker.InventoryLocation;
 import fr.yronusa.ultimatetracker.TrackedItem;
 import fr.yronusa.ultimatetracker.UltimateTracker;
@@ -63,19 +65,22 @@ public class Database {
             public void run() {
 
                 try {
+                    Timestamp time = trackedItem.getLastUpdateItem();
                     Connection conn = getConnection();
                     PreparedStatement preparedStatement = conn.prepareStatement(statement);
                     preparedStatement.setString(1, trackedItem.getOriginalID().toString());
                     preparedStatement.setString(2, itemBase64);
-                    preparedStatement.setTimestamp(3, trackedItem.getLastUpdateItem());
+                    preparedStatement.setTimestamp(3, time);
                     preparedStatement.setString(4, "TODO");
                     preparedStatement.setInt(5, 0);
 
                     int i = preparedStatement.executeUpdate();
                     if (i > 0) {
-                        System.out.println("ROW INSERTED");
+                        DatabaseItemAddedEvent itemAddedEvent = new DatabaseItemAddedEvent(trackedItem, time);
+                        // Necessary because in the newest version of Spigot, Event can't be called from async thread.
+                        Bukkit.getScheduler().runTask(UltimateTracker.getInstance(), () -> Bukkit.getPluginManager().callEvent(itemAddedEvent));
                     } else {
-                        System.out.println("ROW NOT INSERTED");
+                        System.out.println("[ULTIMATE TRACKER] AN ERROR HAS OCCURED WHILE INSERTING A NEW ITEM IN DATABASE.");
                     }
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
@@ -85,20 +90,15 @@ public class Database {
             }
         });
 
-
     }
 
     public static Timestamp getLastUpdate(UUID uuid){
-
         String statement = "SELECT LAST_UPDATE FROM TRACKED_ITEMS WHERE UUID = ?";
         Timestamp lastUpdateTimestamp = null;
-
         try {
             Connection conn = getConnection();
             PreparedStatement preparedStatement = conn.prepareStatement(statement);
             preparedStatement.setString(1, uuid.toString());
-            System.out.println(preparedStatement);
-
             ResultSet resultSet = preparedStatement.executeQuery();
 
             // Check if the result set has data
@@ -106,16 +106,12 @@ public class Database {
                 // Retrieve the last update timestamp from the result set
                 lastUpdateTimestamp = resultSet.getTimestamp("LAST_UPDATE");
                 // Print or use the timestamp as needed
-                System.out.println("Last Update Timestamp for UUID " + uuid.toString() + ": " + lastUpdateTimestamp);
             } else {
-                System.out.println("No data found for UUID: " + uuid);
+                System.out.println("[ULTIMATE TRACKER] No data found for UUID: " + uuid);
             }
-
         } catch (SQLException e) {
             e.printStackTrace();
-            // Handle the exception appropriately
         }
-
         return lastUpdateTimestamp;
     }
     public static List<InventoryLocation> getLastInventories(UUID uuid){
@@ -137,7 +133,6 @@ public class Database {
                     }
                 } catch (SQLException e) {
                     e.printStackTrace();
-                    // handle the exception
                 }
             }
 
@@ -195,7 +190,7 @@ public class Database {
         return itemTimestamp.before(databaseTimestamp);
     }
 
-    public static void blacklist(UUID oldID) {
+    public static void blacklist(TrackedItem trackedItem, UUID oldID) {
 
         String statement = "UPDATE TRACKED_ITEMS SET BLACKLIST = ? WHERE UUID = ?";
         Bukkit.getScheduler().runTaskAsynchronously(UltimateTracker.getInstance(), new Runnable() {
@@ -210,9 +205,11 @@ public class Database {
 
                     int i = preparedStatement.executeUpdate();
                     if (i > 0) {
-                        System.out.println("ITEM SUCCESSFULLY BLACKLISTED");
+                        DatabaseItemBlacklistEvent blacklistEvent = new DatabaseItemBlacklistEvent(trackedItem);
+                        // Necessary because in the newest version of Spigot, Event can't be called from async thread.
+                        Bukkit.getScheduler().runTask(UltimateTracker.getInstance(), () -> Bukkit.getPluginManager().callEvent(blacklistEvent));
                     } else {
-                        System.out.println("ITEM NOT BLACKLISTED");
+                        System.out.println("[ULTIMATE TRACKER] ITEM NOT BLACKLISTED");
                     }
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
@@ -221,6 +218,9 @@ public class Database {
 
             }
         });
+
+        DatabaseItemBlacklistEvent databaseItemBlacklistEvent = new DatabaseItemBlacklistEvent(trackedItem);
+        Bukkit.getPluginManager().callEvent(databaseItemBlacklistEvent);
 
 
     }

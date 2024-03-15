@@ -4,8 +4,8 @@ import fr.yronusa.ultimatetracker.Config.Config;
 import fr.yronusa.ultimatetracker.Config.TrackingRule;
 import fr.yronusa.ultimatetracker.Database.Database;
 import fr.yronusa.ultimatetracker.Event.DupeDetectedEvent;
-import fr.yronusa.ultimatetracker.Event.ItemClearEvent;
 import fr.yronusa.ultimatetracker.Event.ItemStartTrackingEvent;
+import fr.yronusa.ultimatetracker.Event.StackedItemDetectedEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -35,7 +35,7 @@ public class TrackedItem {
     }
 
     public static boolean shouldBeTrack(ItemMutable i) {
-
+        System.out.println("test : should be track");
         ItemStack item = i.getItem();
         if(item == null) return false;
         if(!Config.trackStackedItems && item.getAmount() != 1) return false;
@@ -78,10 +78,8 @@ public class TrackedItem {
             if(UltimateTracker.database) {
                 Database.add(trackedItem);
             }
-
             ItemStartTrackingEvent trackEvent = new ItemStartTrackingEvent(trackedItem);
             Bukkit.getPluginManager().callEvent(trackEvent);
-
             return trackedItem;
         }
     }
@@ -112,38 +110,28 @@ public class TrackedItem {
         }
 
         if(this.getItem() != null && Config.clearStackedItems && this.getItem().getAmount() > 1){
-            ItemClearEvent itemClearEvent = new ItemClearEvent(this, this.getPlayer(), ItemClearEvent.ClearReason.STACKED_ITEM);
-            Bukkit.getPluginManager().callEvent(itemClearEvent);
-            if(!itemClearEvent.isCancelled()){
-                this.quarantine();
-            }
+            StackedItemDetectedEvent stackedItemDetected = new StackedItemDetectedEvent(this);
+            Bukkit.getPluginManager().callEvent(stackedItemDetected);
+            return;
         }
 
         Timestamp newDate = UltimateTracker.getActualDate();
         CompletableFuture<Boolean> isDupli = CompletableFuture.supplyAsync(() -> Database.isDuplicated(this));
         isDupli.exceptionally(error -> {
-            Database.update(this, newDate);
+            if(UltimateTracker.database) Database.update(this, newDate);
             this.getItemMutable().updateDate(newDate);
             return false;
         });
         isDupli.thenAccept((res) -> {
             if(res){
-                if(this.getPlayer() != null){
-                    this.getPlayer().sendMessage(Config.dupeFoundPlayer);
-
-                }
-
                 DupeDetectedEvent dupeDetectEvent = new DupeDetectedEvent(this, this.getPlayer());
-                ItemClearEvent itemClearEvent = new ItemClearEvent(this, this.getPlayer(), ItemClearEvent.ClearReason.DUPE_DETECTED);
-                Bukkit.getPluginManager().callEvent(dupeDetectEvent);
-                Bukkit.getPluginManager().callEvent(itemClearEvent);
-                if(!itemClearEvent.isCancelled()){
-                    this.quarantine();
-                }
 
+                // Necessary because in the newest version of Spigot, Event can't be called from async thread.
+                Bukkit.getScheduler().runTask(UltimateTracker.getInstance(), () -> Bukkit.getPluginManager().callEvent(dupeDetectEvent));
             }
 
             else{
+                System.out.println("step 3. DUPE NOT DETECTED: UPDATING.");
                 Database.update(this, newDate);
                 this.getItemMutable().updateDate(newDate);
             }

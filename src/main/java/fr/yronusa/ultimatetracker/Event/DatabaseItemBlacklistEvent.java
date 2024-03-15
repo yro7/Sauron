@@ -9,13 +9,13 @@ import org.jetbrains.annotations.NotNull;
 import java.sql.Timestamp;
 import java.util.UUID;
 
-public class ItemBlacklistEvent extends Event {
+public class DatabaseItemBlacklistEvent extends Event {
 
 
     private final TrackedItem item;
     private static final HandlerList HANDLERS_LIST = new HandlerList();
 
-    public ItemBlacklistEvent(TrackedItem item){
+    public DatabaseItemBlacklistEvent(TrackedItem item){
         this.item = item;
     }
 

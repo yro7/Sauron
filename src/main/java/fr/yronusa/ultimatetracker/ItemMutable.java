@@ -44,15 +44,15 @@ public class ItemMutable {
     }
 
     public ItemStack getItem() {
-        return item;
+        return this.item;
     }
 
     public Inventory getInventory() {
-        return inventory;
+        return this.inventory;
     }
 
     public int getInventoryPlace() {
-        return inventoryPlace;
+        return this.inventoryPlace;
     }
 
 
@@ -63,6 +63,7 @@ public class ItemMutable {
 
     public boolean hasTrackingID(){
         SafeNBT nbt = SafeNBT.get(this.item);
+        System.out.println(" has tracking id: " + nbt.hasKey("ut_id"));
         return nbt.hasKey("ut_id");
     }
 
@@ -83,7 +84,6 @@ public class ItemMutable {
             nbt.setString("ut_id", id.toString());
             nbt.setString("ut_date", newDate.toString());
             this.update(nbt.apply(i));
-            System.out.println("item set trackable haha");
         }
 
 
