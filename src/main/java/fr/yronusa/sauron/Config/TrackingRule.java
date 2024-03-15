@@ -1,4 +1,4 @@
-package fr.yronusa.ultimatetracker.Config;
+package fr.yronusa.sauron.Config;
 
 import com.jojodmo.safeNBT.api.SafeNBT;
 import org.bukkit.Material;

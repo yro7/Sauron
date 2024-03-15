@@ -1,7 +1,7 @@
-package fr.yronusa.ultimatetracker.Event;
+package fr.yronusa.sauron.Event;
 
-import fr.yronusa.ultimatetracker.Database.Database;
-import fr.yronusa.ultimatetracker.TrackedItem;
+import fr.yronusa.sauron.Database.Database;
+import fr.yronusa.sauron.TrackedItem;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;

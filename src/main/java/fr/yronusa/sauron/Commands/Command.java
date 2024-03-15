@@ -1,10 +1,10 @@
-package fr.yronusa.ultimatetracker.Commands;
+package fr.yronusa.sauron.Commands;
 
-import fr.yronusa.ultimatetracker.Config.Config;
-import fr.yronusa.ultimatetracker.Database.Database;
-import fr.yronusa.ultimatetracker.ItemMutable;
-import fr.yronusa.ultimatetracker.TrackedItem;
-import fr.yronusa.ultimatetracker.UltimateTracker;
+import fr.yronusa.sauron.Config.Config;
+import fr.yronusa.sauron.Database.Database;
+import fr.yronusa.sauron.ItemMutable;
+import fr.yronusa.sauron.TrackedItem;
+import fr.yronusa.sauron.Sauron;
 import org.bukkit.Material;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -65,9 +65,9 @@ public class Command implements CommandExecutor {
     }
 
     private void help(Player p) {
-        p.sendMessage("§2§l---|--- §a§lUltimateTracker §2§l---|---");
-        p.sendMessage("§aCreated by Yronusa for Vikicraft and Community");
-        p.sendMessage( "§aVersion : " + UltimateTracker.getVersion());
+        p.sendMessage("§4§l---|--- §c§lSauron §4§l---|---");
+        p.sendMessage("§eCreated by Yronusa for Vikicraft and Community");
+        p.sendMessage( "§eVersion : " + Sauron.getVersion());
         for(String msg : Config.helpCommand){
 
             p.sendMessage(msg);
@@ -154,7 +154,7 @@ public class Command implements CommandExecutor {
 
 
     public void reload(Player p){
-        UltimateTracker.getInstance().reloadConfig();
+        Sauron.getInstance().reloadConfig();
         p.sendMessage(Config.reloadSuccessful);
     }
 

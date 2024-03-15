@@ -1,7 +1,7 @@
-package fr.yronusa.ultimatetracker.Config;
+package fr.yronusa.sauron.Config;
 
-import fr.yronusa.ultimatetracker.Database.Database;
-import fr.yronusa.ultimatetracker.UltimateTracker;
+import fr.yronusa.sauron.Database.Database;
+import fr.yronusa.sauron.Sauron;
 import org.bukkit.configuration.file.FileConfiguration;
 
 import java.util.List;
@@ -47,7 +47,7 @@ public class Config {
 
     public static boolean load(){
         try{
-            config = UltimateTracker.getInstance().getConfig();;
+            config = Sauron.getInstance().getConfig();;
             loadMessages();
             loadDatabase();
             loadSettings();

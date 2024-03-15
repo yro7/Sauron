@@ -1,9 +1,9 @@
-package fr.yronusa.ultimatetracker;
+package fr.yronusa.sauron;
 
-import fr.yronusa.ultimatetracker.Commands.Command;
-import fr.yronusa.ultimatetracker.Config.Config;
-import fr.yronusa.ultimatetracker.Database.Database;
-import fr.yronusa.ultimatetracker.Database.Initializer;
+import fr.yronusa.sauron.Commands.Command;
+import fr.yronusa.sauron.Config.Config;
+import fr.yronusa.sauron.Database.Database;
+import fr.yronusa.sauron.Database.Initializer;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -13,17 +13,17 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
-public final class UltimateTracker extends JavaPlugin {
+public final class Sauron extends JavaPlugin {
 
-    private static UltimateTracker instance;
+    private static Sauron instance;
 
     public static Player yro;
 
 
 
 
-    public static UltimateTracker getInstance(){
-        return UltimateTracker.instance;
+    public static Sauron getInstance(){
+        return Sauron.instance;
     }
 
     public static boolean database = true;
@@ -32,7 +32,7 @@ public final class UltimateTracker extends JavaPlugin {
     public int inventoryListLength;
     @Override
     public void onEnable() {
-        UltimateTracker.instance = this;
+        Sauron.instance = this;
         if(!Bukkit.getOnlinePlayers().isEmpty()){
             yro = Bukkit.getPlayer("Yronusa2000");
         }
@@ -65,7 +65,7 @@ public final class UltimateTracker extends JavaPlugin {
         // Plugin shutdown logic
 
 
-        System.out.println("[UltimateTracker] Closing database connection.");
+        System.out.println("[Sauron] Closing database connection.");
         try {
             if(Database.connection != null && !Database.connection.isClosed()) Database.connection.close();
             if(Initializer.sqlServerConnection != null && !Initializer.sqlServerConnection.isClosed()) Initializer.sqlServerConnection.close();

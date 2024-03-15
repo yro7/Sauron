@@ -1,7 +1,6 @@
-package fr.yronusa.ultimatetracker.Event;
+package fr.yronusa.sauron.Event;
 
-import fr.yronusa.ultimatetracker.TrackedItem;
-import org.bukkit.entity.Player;
+import fr.yronusa.sauron.TrackedItem;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
@@ -11,22 +10,20 @@ import org.jetbrains.annotations.NotNull;
 import java.sql.Timestamp;
 import java.util.UUID;
 
-public class DatabaseItemAddedEvent extends Event implements Cancellable {
+public class ItemUpdateDateEvent extends Event implements Cancellable {
 
 
     private final TrackedItem item;
 
-    private final Timestamp time;
-
+    private final Timestamp newDate;
     private static final HandlerList HANDLERS_LIST = new HandlerList();
 
-
-
-
-    public DatabaseItemAddedEvent(TrackedItem item, Timestamp time) {
+    public ItemUpdateDateEvent(TrackedItem item, Timestamp newDate){
         this.item = item;
-        this.time = time;
+        this.newDate = newDate;
     }
+
+
 
 
     @Override
@@ -49,6 +46,15 @@ public class DatabaseItemAddedEvent extends Event implements Cancellable {
     public UUID getUUID(){
         return this.item.getOriginalID();
     }
+
+    public Timestamp getOldDate(){
+        return this.item.getLastUpdateItem();
+    }
+
+    public Timestamp getNewDate(){
+        return this.newDate;
+    }
+
     @Override
     public boolean isCancelled() {
         return false;
@@ -56,9 +62,5 @@ public class DatabaseItemAddedEvent extends Event implements Cancellable {
 
     @Override
     public void setCancelled(boolean b) {
-    }
-
-    public Player getPlayer() {
-        return this.getTrackedItem().getPlayer();
     }
 }

@@ -1,6 +1,6 @@
-package fr.yronusa.ultimatetracker.Event;
+package fr.yronusa.sauron.Event;
 
-import fr.yronusa.ultimatetracker.TrackedItem;
+import fr.yronusa.sauron.TrackedItem;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.ItemStack;

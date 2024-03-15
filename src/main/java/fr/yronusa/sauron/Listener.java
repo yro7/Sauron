@@ -1,8 +1,8 @@
-package fr.yronusa.ultimatetracker;
+package fr.yronusa.sauron;
 
-import fr.yronusa.ultimatetracker.Config.Config;
-import fr.yronusa.ultimatetracker.Event.DupeDetectedEvent;
-import fr.yronusa.ultimatetracker.Event.StackedItemDetectedEvent;
+import fr.yronusa.sauron.Config.Config;
+import fr.yronusa.sauron.Event.DupeDetectedEvent;
+import fr.yronusa.sauron.Event.StackedItemDetectedEvent;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;

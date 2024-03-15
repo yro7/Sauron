@@ -1,4 +1,4 @@
-package fr.yronusa.ultimatetracker;
+package fr.yronusa.sauron;
 
 import com.jojodmo.safeNBT.api.SafeNBT;
 import org.bukkit.entity.Player;
@@ -22,11 +22,11 @@ public class ItemMutable {
     }
     public Timestamp getLastUpdate(){
         SafeNBT nbt = SafeNBT.get(this.getItem());
-        if(nbt.hasKey("ut_date")){
-            return Timestamp.valueOf(nbt.getString("ut_date"));
+        if(nbt.hasKey("sauron_date")){
+            return Timestamp.valueOf(nbt.getString("sauron_date"));
         }
         else{
-            System.out.println("[ULTIMATE TRACKER] Error: the item isn't tracked.");
+            System.out.println("[Sauron] Error: the item isn't tracked.");
         }
 
         return null;
@@ -58,18 +58,18 @@ public class ItemMutable {
 
     public UUID getID(){
         SafeNBT nbt = SafeNBT.get(this.item);
-        return UUID.fromString(nbt.getString("ut_id"));
+        return UUID.fromString(nbt.getString("sauron_id"));
     }
 
     public boolean hasTrackingID(){
         SafeNBT nbt = SafeNBT.get(this.item);
-        System.out.println(" has tracking id: " + nbt.hasKey("ut_id"));
-        return nbt.hasKey("ut_id");
+        System.out.println(" has tracking id: " + nbt.hasKey("sauron_id"));
+        return nbt.hasKey("sauron_id");
     }
 
     public static boolean hasTrackingID(ItemStack i){
         SafeNBT nbt = SafeNBT.get(i);
-        return nbt.hasKey("ut_id");
+        return nbt.hasKey("sauron_id");
     }
 
     public void setTrackable(UUID id, Timestamp newDate){
@@ -81,8 +81,8 @@ public class ItemMutable {
         else{
             ItemStack i = this.getItem();
             SafeNBT nbt = SafeNBT.get(i);
-            nbt.setString("ut_id", id.toString());
-            nbt.setString("ut_date", newDate.toString());
+            nbt.setString("sauron_id", id.toString());
+            nbt.setString("sauron_date", newDate.toString());
             this.update(nbt.apply(i));
         }
 
@@ -101,7 +101,7 @@ public class ItemMutable {
     public Timestamp updateDate(Timestamp newDate){
         ItemStack i = this.getItem();
         SafeNBT nbt = SafeNBT.get(i);
-        nbt.setString("ut_date", newDate.toString());
+        nbt.setString("sauron_date", newDate.toString());
         this.update(nbt.apply(i));
         return newDate;
     }
@@ -113,7 +113,7 @@ public class ItemMutable {
     public void changeUUID(UUID uuid){
         ItemStack i = this.getItem();
         SafeNBT nbt = SafeNBT.get(i);
-        nbt.setString("ut_id", uuid.toString());
+        nbt.setString("sauron_id", uuid.toString());
         this.update(nbt.apply(i));
     }
 

@@ -1,12 +1,12 @@
-package fr.yronusa.ultimatetracker.Database;
+package fr.yronusa.sauron.Database;
 
-import fr.yronusa.ultimatetracker.Config.Config;
-import fr.yronusa.ultimatetracker.UltimateTracker;
+import fr.yronusa.sauron.Config.Config;
+import fr.yronusa.sauron.Sauron;
 
 import java.sql.*;
 
-import static fr.yronusa.ultimatetracker.Config.Config.*;
-import static fr.yronusa.ultimatetracker.Database.Database.getConnection;
+import static fr.yronusa.sauron.Config.Config.*;
+import static fr.yronusa.sauron.Database.Database.getConnection;
 
 public class Initializer {
 
@@ -16,7 +16,7 @@ public class Initializer {
         case sqlserver ->
                 "jdbc:sqlserver://" + databaseHost + ":" + databasePort + ";databaseName=" ;
         case sqlite -> {
-            String path = UltimateTracker.getInstance().getDataFolder().getAbsolutePath();
+            String path = Sauron.getInstance().getDataFolder().getAbsolutePath();
             yield "jdbc:sqlite:" + path + ".db";
         }
         default -> "jdbc:" + databaseType + "://"
@@ -25,7 +25,7 @@ public class Initializer {
 
     public static Connection getSqlServerConnection() throws SQLException {
         if(!sqlServerConnection.isValid(2)){
-            UltimateTracker.yro.sendMessage("§C NEW CONNEXION (TO SERVER)");
+            Sauron.yro.sendMessage("§C NEW CONNEXION (TO SERVER)");
             sqlServerConnection = DriverManager.getConnection(jdbcWithoutName, Config.databaseUser,Config.databasePassword);
         }
 
@@ -36,16 +36,16 @@ public class Initializer {
         try  {
 
             if(!canConnectToServer()){
-                System.out.println("[UltimateTracker] Database connexion failed. Please, check credentials in config file.");
-                System.out.println("[UltimateTracker] Database update is OFF, but items will still be tracked according to TrackingRules.");
+                System.out.println("[Sauron] Database connexion failed. Please, check credentials in config file.");
+                System.out.println("[Sauron] Database update is OFF, but items will still be tracked according to TrackingRules.");
                 return false;
             }
 
-            System.out.println("[UltimateTracker] Successfully connected to the SQL Server.");
+            System.out.println("[Sauron] Successfully connected to the SQL Server.");
 
 
             if(!databaseExists()){
-                System.out.println("[UltimateTracker] Database do not exists, creating ULTIMATE_TRACKER database...");
+                System.out.println("[Sauron] Database do not exists, creating sauron database...");
                 createDatabase();
             }
 
@@ -55,11 +55,11 @@ public class Initializer {
             Database.connect();
 
             if(!tableExists()){
-                System.out.println("[UltimateTracker] Table \"TRACKED_ITEMS\" do not exist, creating it...");
+                System.out.println("[Sauron] Table \"TRACKED_ITEMS\" do not exist, creating it...");
                 createTable();
             }
         } catch (SQLException e) {
-            System.out.println("[UltimateTracker] Database update is OFF, but items will still be tracked according to TrackingRules.");
+            System.out.println("[Sauron] Database update is OFF, but items will still be tracked according to TrackingRules.");
             return false;
         }
 
@@ -69,7 +69,7 @@ public class Initializer {
             e.printStackTrace();
         }
 
-        System.out.println("[UltimateTracker] Database ON !");
+        System.out.println("[Sauron] Database ON !");
         return true;
     }
 

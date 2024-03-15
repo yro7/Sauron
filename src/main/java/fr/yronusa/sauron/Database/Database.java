@@ -1,17 +1,17 @@
-package fr.yronusa.ultimatetracker.Database;
+package fr.yronusa.sauron.Database;
 
-import fr.yronusa.ultimatetracker.Event.DatabaseItemAddedEvent;
-import fr.yronusa.ultimatetracker.Event.DatabaseItemBlacklistEvent;
-import fr.yronusa.ultimatetracker.InventoryLocation;
-import fr.yronusa.ultimatetracker.TrackedItem;
-import fr.yronusa.ultimatetracker.UltimateTracker;
+import fr.yronusa.sauron.Event.DatabaseItemAddedEvent;
+import fr.yronusa.sauron.Event.DatabaseItemBlacklistEvent;
+import fr.yronusa.sauron.InventoryLocation;
+import fr.yronusa.sauron.TrackedItem;
+import fr.yronusa.sauron.Sauron;
 import org.bukkit.Bukkit;
 
 import java.sql.*;
 import java.util.List;
 import java.util.UUID;
 
-import static fr.yronusa.ultimatetracker.Config.Config.*;
+import static fr.yronusa.sauron.Config.Config.*;
 
 
 public class Database {
@@ -30,7 +30,7 @@ public class Database {
 
     public static Connection getConnection() throws SQLException {
         if(!connection.isValid(2)){
-            UltimateTracker.yro.sendMessage("§C NEW CONNEXION (TO DATABASE)");
+            Sauron.yro.sendMessage("§C NEW CONNEXION (TO DATABASE)");
             connect();
         }
         return connection;
@@ -47,7 +47,7 @@ public class Database {
             case sqlserver ->
                     "jdbc:sqlserver://" + databaseHost + ":" + databasePort + ";databaseName=" + databaseName;
             case sqlite -> {
-                String path = UltimateTracker.getInstance().getDataFolder().getAbsolutePath();
+                String path = Sauron.getInstance().getDataFolder().getAbsolutePath();
                 yield "jdbc:sqlite:" + path + databaseName + ".db";
             }
             default -> "jdbc:" + databaseType + "://"
@@ -60,7 +60,7 @@ public class Database {
         String itemBase64 = trackedItem.getBase64();
 
         String statement = "INSERT INTO TRACKED_ITEMS (UUID, ITEMBASE64, LAST_UPDATE, LAST_INVENTORIES, IS_BLACKLISTED) VALUES (?, ?, ?, ?, ?)";
-        Bukkit.getScheduler().runTaskAsynchronously(UltimateTracker.getInstance(), new Runnable() {
+        Bukkit.getScheduler().runTaskAsynchronously(Sauron.getInstance(), new Runnable() {
             @Override
             public void run() {
 
@@ -78,9 +78,9 @@ public class Database {
                     if (i > 0) {
                         DatabaseItemAddedEvent itemAddedEvent = new DatabaseItemAddedEvent(trackedItem, time);
                         // Necessary because in the newest version of Spigot, Event can't be called from async thread.
-                        Bukkit.getScheduler().runTask(UltimateTracker.getInstance(), () -> Bukkit.getPluginManager().callEvent(itemAddedEvent));
+                        Bukkit.getScheduler().runTask(Sauron.getInstance(), () -> Bukkit.getPluginManager().callEvent(itemAddedEvent));
                     } else {
-                        System.out.println("[ULTIMATE TRACKER] AN ERROR HAS OCCURED WHILE INSERTING A NEW ITEM IN DATABASE.");
+                        System.out.println("[SAURON] AN ERROR HAS OCCURED WHILE INSERTING A NEW ITEM IN DATABASE.");
                     }
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
@@ -107,7 +107,7 @@ public class Database {
                 lastUpdateTimestamp = resultSet.getTimestamp("LAST_UPDATE");
                 // Print or use the timestamp as needed
             } else {
-                System.out.println("[ULTIMATE TRACKER] No data found for UUID: " + uuid);
+                System.out.println("[Sauron] No data found for UUID: " + uuid);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -118,7 +118,7 @@ public class Database {
         String sqlSelectTrackedItem= "SELECT * FROM SAVED_ITEMS WHERE UUID = " + uuid.toString();
 
         final String[] res = new String[0];
-        Bukkit.getScheduler().runTaskAsynchronously(UltimateTracker.getInstance(), new Runnable() {
+        Bukkit.getScheduler().runTaskAsynchronously(Sauron.getInstance(), new Runnable() {
             @Override
             public void run() {
                 try {
@@ -144,7 +144,7 @@ public class Database {
 
         String verif = "SELECT 1 FROM TRACKED_ITEMS WHERE UUID = ?";
         String statement = "UPDATE TRACKED_ITEMS SET LAST_UPDATE = ? WHERE UUID = ?";
-        Bukkit.getScheduler().runTaskAsynchronously(UltimateTracker.getInstance(), new Runnable() {
+        Bukkit.getScheduler().runTaskAsynchronously(Sauron.getInstance(), new Runnable() {
             @Override
             public void run() {
 
@@ -193,7 +193,7 @@ public class Database {
     public static void blacklist(TrackedItem trackedItem, UUID oldID) {
 
         String statement = "UPDATE TRACKED_ITEMS SET BLACKLIST = ? WHERE UUID = ?";
-        Bukkit.getScheduler().runTaskAsynchronously(UltimateTracker.getInstance(), new Runnable() {
+        Bukkit.getScheduler().runTaskAsynchronously(Sauron.getInstance(), new Runnable() {
             @Override
             public void run() {
 
@@ -207,9 +207,9 @@ public class Database {
                     if (i > 0) {
                         DatabaseItemBlacklistEvent blacklistEvent = new DatabaseItemBlacklistEvent(trackedItem);
                         // Necessary because in the newest version of Spigot, Event can't be called from async thread.
-                        Bukkit.getScheduler().runTask(UltimateTracker.getInstance(), () -> Bukkit.getPluginManager().callEvent(blacklistEvent));
+                        Bukkit.getScheduler().runTask(Sauron.getInstance(), () -> Bukkit.getPluginManager().callEvent(blacklistEvent));
                     } else {
-                        System.out.println("[ULTIMATE TRACKER] ITEM NOT BLACKLISTED");
+                        System.out.println("[Sauron] ITEM NOT BLACKLISTED");
                     }
                 } catch (SQLException e) {
                     throw new RuntimeException(e);

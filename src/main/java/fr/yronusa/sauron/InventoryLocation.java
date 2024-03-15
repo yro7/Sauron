@@ -1,4 +1,4 @@
-package fr.yronusa.ultimatetracker;
+package fr.yronusa.sauron;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;

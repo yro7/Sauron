@@ -1,6 +1,6 @@
-name: UltimateTracker
+name: Sauron
 version: '${project.version}'
-main: fr.yronusa.ultimatetracker.UltimateTracker
+main: fr.yronusa.sauron.UltimateTracker
 api-version: '1.19'
 commands:
   ut:

@@ -1,11 +1,11 @@
-package fr.yronusa.ultimatetracker;
+package fr.yronusa.sauron;
 
-import fr.yronusa.ultimatetracker.Config.Config;
-import fr.yronusa.ultimatetracker.Config.TrackingRule;
-import fr.yronusa.ultimatetracker.Database.Database;
-import fr.yronusa.ultimatetracker.Event.DupeDetectedEvent;
-import fr.yronusa.ultimatetracker.Event.ItemStartTrackingEvent;
-import fr.yronusa.ultimatetracker.Event.StackedItemDetectedEvent;
+import fr.yronusa.sauron.Config.Config;
+import fr.yronusa.sauron.Config.TrackingRule;
+import fr.yronusa.sauron.Database.Database;
+import fr.yronusa.sauron.Event.DupeDetectedEvent;
+import fr.yronusa.sauron.Event.ItemStartTrackingEvent;
+import fr.yronusa.sauron.Event.StackedItemDetectedEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -66,16 +66,16 @@ public class TrackedItem {
     public static TrackedItem startTracking(ItemMutable item){
 
         if(item.hasTrackingID()){
-            System.out.println("[ULTIMATE TRACKER] Error: The item is already tracked.");
+            System.out.println("[SAURON] Error: The item is already tracked.");
             return null;
         }
 
         else{
             UUID originalID = UUID.randomUUID();
-            item.setTrackable(originalID, UltimateTracker.getActualDate());
+            item.setTrackable(originalID, Sauron.getActualDate());
             TrackedItem trackedItem = new TrackedItem(item);
 
-            if(UltimateTracker.database) {
+            if(Sauron.database) {
                 Database.add(trackedItem);
             }
             ItemStartTrackingEvent trackEvent = new ItemStartTrackingEvent(trackedItem);
@@ -115,10 +115,10 @@ public class TrackedItem {
             return;
         }
 
-        Timestamp newDate = UltimateTracker.getActualDate();
+        Timestamp newDate = Sauron.getActualDate();
         CompletableFuture<Boolean> isDupli = CompletableFuture.supplyAsync(() -> Database.isDuplicated(this));
         isDupli.exceptionally(error -> {
-            if(UltimateTracker.database) Database.update(this, newDate);
+            if(Sauron.database) Database.update(this, newDate);
             this.getItemMutable().updateDate(newDate);
             return false;
         });
@@ -127,7 +127,7 @@ public class TrackedItem {
                 DupeDetectedEvent dupeDetectEvent = new DupeDetectedEvent(this, this.getPlayer());
 
                 // Necessary because in the newest version of Spigot, Event can't be called from async thread.
-                Bukkit.getScheduler().runTask(UltimateTracker.getInstance(), () -> Bukkit.getPluginManager().callEvent(dupeDetectEvent));
+                Bukkit.getScheduler().runTask(Sauron.getInstance(), () -> Bukkit.getPluginManager().callEvent(dupeDetectEvent));
             }
 
             else{
@@ -144,7 +144,7 @@ public class TrackedItem {
 
     private boolean shouldUpdate() {
         Timestamp itemTimestamp = this.getLastUpdateItem();
-        Timestamp actualTime = UltimateTracker.getActualDate();
+        Timestamp actualTime = Sauron.getActualDate();
         long difference = actualTime.getTime() - itemTimestamp.getTime();
         return difference / 1000 >= Config.delay;
     }
