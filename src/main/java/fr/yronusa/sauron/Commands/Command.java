@@ -2,20 +2,25 @@ package fr.yronusa.sauron.Commands;
 
 import fr.yronusa.sauron.Config.Config;
 import fr.yronusa.sauron.Database.Database;
+import fr.yronusa.sauron.Database.Initializer;
 import fr.yronusa.sauron.ItemMutable;
-import fr.yronusa.sauron.TrackedItem;
 import fr.yronusa.sauron.Sauron;
+import fr.yronusa.sauron.TrackedItem;
 import org.bukkit.Material;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.HashMap;
 import java.util.UUID;
 
 public class Command implements CommandExecutor {
 
+    public static HashMap<Player, BukkitTask> doNotTrackPlayers = new HashMap<>();
 
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, org.bukkit.command.@NotNull Command command, @NotNull String s, @NotNull String[] strings) {
@@ -29,22 +34,16 @@ public class Command implements CommandExecutor {
             return true;
        }
 
-        if(!p.hasPermission("ut.use."+strings[0].toLowerCase())){
+        if(!p.hasPermission("sauron.use."+strings[0].toLowerCase())){
             p.sendMessage(Config.insufficientPermission);
         }
 
         switch(strings[0].toLowerCase()){
-            case "save":
-                save(p);
-                break;
-            case "delete":
-                delete(p);
-                break;
-            case "find":
-                find(p);
-                break;
             case "list":
-                list(p, strings);
+                list(p);
+                break;
+            case "stop":
+                stop(p);
                 break;
             case "track":
                 track(p);
@@ -64,18 +63,16 @@ public class Command implements CommandExecutor {
         return true;
     }
 
-    private void help(Player p) {
-        p.sendMessage("§4§l---|--- §c§lSauron §4§l---|---");
-        p.sendMessage("§eCreated by Yronusa for Vikicraft and Community");
+    public void help(Player p) {
+        p.sendMessage("§4§l§m-|--- §c§l SAURON §4§l§m----|-");
+        p.sendMessage("§eCreated by yronusa");
         p.sendMessage( "§eVersion : " + Sauron.getVersion());
         for(String msg : Config.helpCommand){
-
             p.sendMessage(msg);
         }
     }
 
-    private void track(Player p) {
-
+    public void track(Player p) {
         ItemStack i = p.getInventory().getItemInMainHand();
         if(i.getType() != Material.AIR){
 
@@ -100,45 +97,13 @@ public class Command implements CommandExecutor {
                 e.printStackTrace();
                 p.sendMessage(Config.trackFailed);
             }
-
         }
-
         else{
             p.sendMessage(Config.trackEmpty);
         }
     }
 
-    private void save(Player p) {
-
-        ItemStack i = p.getInventory().getItemInMainHand();
-        if(i.getType() != Material.AIR){
-
-            try{
-                //Database.saveItem(i);
-                p.sendMessage("§7* §aObjet enregistré avec succès !");
-            }
-
-            catch(Exception e){
-                e.printStackTrace();
-                p.sendMessage("§7* §cERREUR: L'objet n'a pas correctement pu être sauvegardé.");
-            }
-
-        }
-
-        else{
-            p.sendMessage("§7* §cVous devez tenir un objet en main!");
-        }
-
-    }
-
-    public void delete(Player p){
-
-    }
-
-    private void find(Player p) {
-    }
-
-    private void refund(Player p){
+    public void refund(Player p){
         ItemMutable item = new ItemMutable(p);
         if(!item.hasTrackingID()){
             p.sendMessage(Config.notTracked);
@@ -155,25 +120,40 @@ public class Command implements CommandExecutor {
 
     public void reload(Player p){
         Sauron.getInstance().reloadConfig();
+        Config.load();
+        Initializer.initializeDatabase();
         p.sendMessage(Config.reloadSuccessful);
     }
 
-    private void list(Player p, String[] args){
-        if(args.length < 2){
-            p.sendMessage("§7* §cVeuillez spécifier ''saved'' ou ''tracked''.");
-            return;
-        }
-        switch(args[1]){
-            case "saved":
-              //  new SavedItemsGUI(p, 0).open();
-                break;
-            case "tracked":
-               // new TrackedItemsGUI(p, 0).open();
-                break;
-            default:
-                p.sendMessage("§7* §cVeuillez spécifier ''saved'' ou ''tracked''.");
-                break;
-        }
+    public void list(Player p){
+
     }
 
+    public void stop(Player p){
+        if(Command.doNotTrackPlayers.containsKey(p)){
+            Command.doNotTrackPlayers.get(p).cancel();
+            Command.doNotTrackPlayers.remove(p);
+            p.sendMessage("§7* §cAutomatic tracking of your items has been re-enabled.");
+            return;
+        }
+        p.sendMessage("§7* §aAutomatic tracking of your items has been stopped for 5 minutes.");
+        BukkitTask warning = new BukkitRunnable() {
+            @Override
+            public void run() {
+                p.sendMessage("§c[Sauron] Warning: Automatic tracking of your item will be re-enabled in 30 seconds.");
+            }
+        }.runTaskLater(Sauron.getInstance(), (60*5 - 30)*20);
+
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                Command.doNotTrackPlayers.remove(p);
+            }
+        }.runTaskLater(Sauron.getInstance(), 60*5);
+
+        Command.doNotTrackPlayers.put(p,warning);
+    }
+
+
 }
+

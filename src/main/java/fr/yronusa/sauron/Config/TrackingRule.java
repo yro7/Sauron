@@ -36,16 +36,13 @@ public class TrackingRule implements Predicate<ItemStack> {
         configSection = Config.config.getConfigurationSection("rules");
         List<TrackingRule> res = new ArrayList<>();
         Set<String> rulesPath = configSection.getKeys(false);
-        System.out.println(rulesPath);
         for(String s : rulesPath){
             res.add(new TrackingRule(s));
         }
-        System.out.println("tracking rules : " + res);
         return res;
     }
 
     public TrackingRule(String s) {
-        System.out.println("test2");
         this.materials = new ArrayList<>();
         this.flags = new ArrayList<>();
         this.nbt = new ArrayList<>();
@@ -71,11 +68,9 @@ public class TrackingRule implements Predicate<ItemStack> {
             this.materials.add(Material.valueOf(mat));
         }
 
-        this.print();
 
     }
     public static boolean containsString(ItemStack i, List<String> strings){
-        System.out.println("contains one of string list : " + strings);
         if(strings.isEmpty()) return true;
         List<String> lore = i.getItemMeta().getLore();
         String name = i.getItemMeta().getDisplayName();
@@ -168,11 +163,6 @@ public class TrackingRule implements Predicate<ItemStack> {
 
     @Override
     public boolean test(ItemStack itemStack) {
-        System.out.println("isofmaterial: " + isOfMaterial(itemStack, this.materials));
-        System.out.println("hasFlag: " + hasFlag(itemStack, this.flags));
-        System.out.println("hasNbt : " + hasNbt(itemStack, this.nbt));
-        System.out.println("containsString : " + containsString(itemStack, this.contains));
-        System.out.println("is unbreakable : " + isUnbreakable(itemStack, this.isUnbreakable));
         return isOfMaterial(itemStack, this.materials)
                 && hasFlag(itemStack, this.flags)
                 && hasNbt(itemStack, this.nbt)
@@ -182,7 +172,7 @@ public class TrackingRule implements Predicate<ItemStack> {
     }
 
     public void print(){
-        System.out.println("TRACKING RULE N° " + this);
+        System.out.println("[SAURON] TRACKING RULE N° " + this);
         System.out.println("MUST CONTAINS ONE OF THOSE WORDS:");
         for(String s : this.contains){
             System.out.println(s);

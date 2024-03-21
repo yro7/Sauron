@@ -1,6 +1,7 @@
 package fr.yronusa.sauron.Database;
 
 import fr.yronusa.sauron.Config.Config;
+import fr.yronusa.sauron.Log;
 import fr.yronusa.sauron.Sauron;
 
 import java.sql.*;
@@ -25,7 +26,7 @@ public class Initializer {
 
     public static Connection getSqlServerConnection() throws SQLException {
         if(!sqlServerConnection.isValid(2)){
-            Sauron.yro.sendMessage("§C NEW CONNEXION (TO SERVER)");
+            Log.sendMessageAdmin("§c[Sauron] New connection to SQL server.");
             sqlServerConnection = DriverManager.getConnection(jdbcWithoutName, Config.databaseUser,Config.databasePassword);
         }
 

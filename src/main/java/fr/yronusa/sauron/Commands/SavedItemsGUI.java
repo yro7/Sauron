@@ -1,14 +1,7 @@
 package fr.yronusa.sauron.Commands;
 
 import mc.obliviate.inventory.Gui;
-import mc.obliviate.inventory.Icon;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.InventoryOpenEvent;
-import org.bukkit.inventory.ItemStack;
-
-import java.util.Iterator;
-import java.util.List;
 
 public class SavedItemsGUI extends Gui {
 
@@ -19,14 +12,11 @@ public class SavedItemsGUI extends Gui {
         //player, id, title, row
         this.page = page;
     }
-
+/**
     @Override
     public void onOpen(InventoryOpenEvent event) {
         int a = this.page*45;
         int b = a + 45;
-
-
-        // BUTTONS: page precedente, page suivante
         List<ItemStack> items = null;
 
         try{
@@ -36,10 +26,27 @@ public class SavedItemsGUI extends Gui {
             return;
         }
 
-       // System.out.println(items);
+        CompletableFuture<List<TrackedItem>> getTrackedItems= CompletableFuture.supplyAsync(() -> Database.isDuplicated(this));
+        isDupli.exceptionally(error -> {
+            if(Sauron.database) Database.update(this, newDate);
+            this.getItemMutable().updateDate(newDate);
+            return false;
+        });
+        isDupli.thenAccept((res) -> {
+            if(res){
+                DupeDetectedEvent dupeDetectEvent = new DupeDetectedEvent(this, this.getPlayer());
+
+                // Necessary because in the newest version of Spigot, Event can't be called from async thread.
+                Bukkit.getScheduler().runTask(Sauron.getInstance(), () -> Bukkit.getPluginManager().callEvent(dupeDetectEvent));
+            }
+
+            else{
+                Database.update(this, newDate);
+                this.getItemMutable().updateDate(newDate);
+            }
+        });
 
         Iterator<ItemStack> iterator = items.iterator();
-
         while(iterator.hasNext()){
             ItemStack item = items.iterator().next();
             Icon icon = new Icon(item);
@@ -69,5 +76,5 @@ public class SavedItemsGUI extends Gui {
 
 
     }
-
+**/
 }

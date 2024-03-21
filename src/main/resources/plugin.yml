@@ -1,8 +1,8 @@
 name: Sauron
 version: '${project.version}'
-main: fr.yronusa.sauron.UltimateTracker
+main: fr.yronusa.sauron.Sauron
 api-version: '1.19'
 commands:
-  ut:
+  sauron:
     description: help command
-    permission: ut.use
+    permission: sauron.use

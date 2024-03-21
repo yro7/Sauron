@@ -15,6 +15,8 @@ rules:
     flags:
       - HIDE_UNBREAKABLE
     unbreakable: true
+    has_nbt:
+      - yronusaTest
 settings:
   delay: 10
   track-stacked-items: false
@@ -37,14 +39,15 @@ messages:
       already-tracked: "§7* §cThis item is already tracked."
     reload: "§7* §aPlugin successfully reloaded."
     help:
-      - "§aCommands:"
+      - "§cCommands:"
       - ""
-      - "§7* §a/ut: §7Show this menu."
+      - "§7* §c/sauron: §7Shows this menu."
       - ""
-      - "§7* §a/ut list saved: §7Show the list of saved items."
-      - "§7* §a/ut list tracked: §7Show the list of tracked items."
+      - "§7* §c/sauron tracked: §7Shows the list of tracked items. (NOT YET ENABLED)"
       - ""
-      - "§7* §a/ut track: §7Start tracking the object you have in hands."
+      - "§7* §c/sauron track: §7Start tracking the object you have in hands."
       - ""
-      - "§7* §a/ut stop: §7Stop or start tracked item's update for player. Can be used for debugging or custom items edition."
+      - "§7* §c/sauron refund: §7Blacklist the current item and gives you a clean version."
+      - ""
+      - "§7* §c/sauron stop: §7Stop or start tracked item's update for player. Can be used for debugging or to custom items."
       - ""

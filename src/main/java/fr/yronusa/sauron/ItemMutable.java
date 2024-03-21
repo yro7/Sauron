@@ -63,7 +63,6 @@ public class ItemMutable {
 
     public boolean hasTrackingID(){
         SafeNBT nbt = SafeNBT.get(this.item);
-        System.out.println(" has tracking id: " + nbt.hasKey("sauron_id"));
         return nbt.hasKey("sauron_id");
     }
 

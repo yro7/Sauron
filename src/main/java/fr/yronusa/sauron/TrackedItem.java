@@ -27,6 +27,7 @@ public class TrackedItem {
     public Timestamp lastUpdate; // Last update of the item at format YYYY.MM.DD.hh.mm
 
     // Used to get the associated TrackedItem from an ItemMutable directly.
+    // The ItemMutable is necessary to be able to update data on the item more easily.
     public TrackedItem(ItemMutable item) {
         this.item = item;
         this.originalID = item.getID();
@@ -35,13 +36,11 @@ public class TrackedItem {
     }
 
     public static boolean shouldBeTrack(ItemMutable i) {
-        System.out.println("test : should be track");
         ItemStack item = i.getItem();
         if(item == null) return false;
         if(!Config.trackStackedItems && item.getAmount() != 1) return false;
 
         for(TrackingRule rule : Config.trackingRules){
-            rule.print();
             if(rule.test(i.getItem())) return true;
         }
 
@@ -131,7 +130,6 @@ public class TrackedItem {
             }
 
             else{
-                System.out.println("step 3. DUPE NOT DETECTED: UPDATING.");
                 Database.update(this, newDate);
                 this.getItemMutable().updateDate(newDate);
             }

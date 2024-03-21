@@ -3,6 +3,7 @@ package fr.yronusa.sauron.Database;
 import fr.yronusa.sauron.Event.DatabaseItemAddedEvent;
 import fr.yronusa.sauron.Event.DatabaseItemBlacklistEvent;
 import fr.yronusa.sauron.InventoryLocation;
+import fr.yronusa.sauron.Log;
 import fr.yronusa.sauron.TrackedItem;
 import fr.yronusa.sauron.Sauron;
 import org.bukkit.Bukkit;
@@ -30,7 +31,7 @@ public class Database {
 
     public static Connection getConnection() throws SQLException {
         if(!connection.isValid(2)){
-            Sauron.yro.sendMessage("§C NEW CONNEXION (TO DATABASE)");
+            Log.sendMessageAdmin("§c[Sauron] New connection to sauron's database.");
             connect();
         }
         return connection;
@@ -77,10 +78,10 @@ public class Database {
                     int i = preparedStatement.executeUpdate();
                     if (i > 0) {
                         DatabaseItemAddedEvent itemAddedEvent = new DatabaseItemAddedEvent(trackedItem, time);
-                        // Necessary because in the newest version of Spigot, Event can't be called from async thread.
+                        // Necessary because in the newest version of Spigot, Events can't be called from async thread.
                         Bukkit.getScheduler().runTask(Sauron.getInstance(), () -> Bukkit.getPluginManager().callEvent(itemAddedEvent));
                     } else {
-                        System.out.println("[SAURON] AN ERROR HAS OCCURED WHILE INSERTING A NEW ITEM IN DATABASE.");
+                        System.out.println("[SAURON] An error has occured while inserting a new item in database.");
                     }
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
@@ -223,6 +224,10 @@ public class Database {
         Bukkit.getPluginManager().callEvent(databaseItemBlacklistEvent);
 
 
+    }
+
+    public static List<TrackedItem> getTrackedItems(){
+        return null;
     }
 
 }

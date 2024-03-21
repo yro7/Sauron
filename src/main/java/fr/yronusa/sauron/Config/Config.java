@@ -51,7 +51,6 @@ public class Config {
             loadMessages();
             loadDatabase();
             loadSettings();
-            System.out.println("getting tracking rules...");
             trackingRules = TrackingRule.getTrackingRulesFromConfig();
 
             return true;
