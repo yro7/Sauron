@@ -30,6 +30,7 @@ public final class Sauron extends JavaPlugin {
         registerCommands();
         database = Initializer.initializeDatabase();
         Log.initialize();
+        Tracker.updatePlayersInventory();
 
 
     }
@@ -46,7 +47,7 @@ public final class Sauron extends JavaPlugin {
     }
 
     private void registerEvents() {
-        getServer().getPluginManager().registerEvents(new Listener(), this);
+        getServer().getPluginManager().registerEvents(new Tracker(), this);
     }
     @Override
     public void onDisable() {

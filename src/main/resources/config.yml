@@ -18,7 +18,8 @@ rules:
     has_nbt:
       - yronusaTest
 settings:
-  delay: 10
+  delay-in-hand: 10
+  automatic-update-interval: 1
   track-stacked-items: false
   clear-stacked-items: true
 messages:

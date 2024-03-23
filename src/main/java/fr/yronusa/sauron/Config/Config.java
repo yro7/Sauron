@@ -15,6 +15,8 @@ public class Config {
     // PLugin settings
     public static int delay;
 
+    public static int automaticUpdateInterval;
+
     public static boolean trackStackedItems;
     public static boolean clearStackedItems;
 
@@ -70,7 +72,8 @@ public class Config {
     }
 
     private static void loadSettings(){
-        delay = config.getInt("settings.delay");
+        delay = config.getInt("settings.delay-in-hand");
+        automaticUpdateInterval = config.getInt("settings.automatic-update-interval");
         clearStackedItems = config.getBoolean("settings.clear-stacked-items");
         trackStackedItems = config.getBoolean("settings.track-stacked-items");
     }

@@ -8,6 +8,7 @@ import fr.yronusa.sauron.Event.ItemStartTrackingEvent;
 import fr.yronusa.sauron.Event.StackedItemDetectedEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.io.BukkitObjectOutputStream;
 import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
@@ -65,8 +66,9 @@ public class TrackedItem {
     public static TrackedItem startTracking(ItemMutable item){
 
         if(item.hasTrackingID()){
-            System.out.println("[SAURON] Error: The item is already tracked.");
-            return null;
+            TrackedItem trackedItem = new TrackedItem(item);
+            trackedItem.update();
+            return trackedItem;
         }
 
         else{
@@ -83,6 +85,20 @@ public class TrackedItem {
         }
     }
 
+    public static void update(Inventory inv){
+        int position = 0;
+        for(ItemStack i : inv.getContents()) {
+
+            ItemMutable item = new ItemMutable(i, inv, position);
+            if(item.hasTrackingID()){
+                (new TrackedItem(item)).update();
+                return;
+            }
+            if(shouldBeTrack(item)){
+                startTracking(item);
+            }
+        }
+    }
 
     public Player getPlayer(){
         if(this.getItemMutable().getInventory().getHolder() instanceof Player p){
