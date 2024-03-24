@@ -6,18 +6,28 @@ database:
   user: root
   password: toor
 rules:
-  ruleA:
+  super-weapons:
     contains:
       - custom
       - OP
     materials:
       - DIAMOND_SWORD
+      - DIAMOND_AXE
     flags:
       - HIDE_UNBREAKABLE
     unbreakable: true
     has_nbt:
       - yronusaTest
+  capybara-armors:
+    contains:
+      - Capybara
+    materials:
+      - DIAMOND_HELMET
+      - DIAMOND_LEGGINGS
+    has_nbt:
+      - capybaraArmor
 settings:
+  save-item-data: false
   delay-in-hand: 10
   automatic-update-interval: 1
   track-stacked-items: false
@@ -25,6 +35,7 @@ settings:
 messages:
   dupe-found-player: "§7* §cYour item has been flagged has duplicated, please contact an administrator."
   stacked-item-player: "§7* §cHaving such stacked item is illegal, please contact an administrator."
+  blacklisted-item-found-player:
   not-tracked: "§7* §cThis item is not tracked."
   commands:
     insufficient-permission: "§7* §cYou do not have the permission to use that command."

@@ -10,13 +10,13 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
-public class StackedItemDetectedEvent extends Event implements Cancellable {
+public class BlacklistedItemDetectedEvent extends Event implements Cancellable {
 
     private final TrackedItem item;
 
     private static final HandlerList HANDLERS_LIST = new HandlerList();
 
-    public StackedItemDetectedEvent(TrackedItem item) {
+    public BlacklistedItemDetectedEvent(TrackedItem item) {
         this.item = item;
     }
 

@@ -4,8 +4,8 @@ import fr.yronusa.sauron.Event.DatabaseItemAddedEvent;
 import fr.yronusa.sauron.Event.DatabaseItemBlacklistEvent;
 import fr.yronusa.sauron.InventoryLocation;
 import fr.yronusa.sauron.Log;
-import fr.yronusa.sauron.TrackedItem;
 import fr.yronusa.sauron.Sauron;
+import fr.yronusa.sauron.TrackedItem;
 import org.bukkit.Bukkit;
 
 import java.sql.*;
@@ -70,7 +70,8 @@ public class Database {
                     Connection conn = getConnection();
                     PreparedStatement preparedStatement = conn.prepareStatement(statement);
                     preparedStatement.setString(1, trackedItem.getOriginalID().toString());
-                    preparedStatement.setString(2, itemBase64);
+                    preparedStatement.setString(2, "");
+                    if(saveItemData) preparedStatement.setString(2, itemBase64);
                     preparedStatement.setTimestamp(3, time);
                     preparedStatement.setString(4, "TODO");
                     preparedStatement.setInt(5, 0);
@@ -226,6 +227,29 @@ public class Database {
 
     public static List<TrackedItem> getTrackedItems(){
         return null;
+    }
+
+    public static Boolean isBlacklisted(TrackedItem item){
+        String statement = "SELECT IS_BLACKLISTED FROM TRACKED_ITEMS WHERE UUID = ?";
+        Boolean res = null;
+        try {
+            Connection conn = getConnection();
+            PreparedStatement preparedStatement = conn.prepareStatement(statement);
+            preparedStatement.setString(1, item.getOriginalID().toString());
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            // Check if the result set has data
+            if (resultSet.next()) {
+                // Retrieve the last update timestamp from the result set
+                res = resultSet.getBoolean("IS_BLACKLISTED");
+                // Print or use the timestamp as needed
+            } else {
+                System.out.println("[Sauron] No data found for UUID: " + item.getOriginalID());
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return res;
     }
 
 }

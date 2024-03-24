@@ -1,8 +1,6 @@
 package fr.yronusa.sauron;
 
 import fr.yronusa.sauron.Config.Config;
-import fr.yronusa.sauron.Event.DupeDetectedEvent;
-import fr.yronusa.sauron.Event.StackedItemDetectedEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -69,24 +67,6 @@ public class Tracker implements org.bukkit.event.Listener {
 
             position++;
         }
-    }
-
-    @EventHandler
-    public void onDupeDetected(DupeDetectedEvent e){
-        Log.dupe(e.getUUID(), e.getPlayer(), e.getLocation());
-        if(e.getPlayer() != null){
-            e.getPlayer().sendMessage(Config.dupeFoundPlayer);
-        }
-        e.getTrackedItem().quarantine();
-    }
-
-    @EventHandler
-    public void onStackedItemDetected(StackedItemDetectedEvent e){
-        Log.stackedFound(e.getUUID(), e.getPlayer(), e.getPlayer().getLocation(), e.getItemStack().getAmount());
-        if(e.getPlayer() != null){
-            e.getPlayer().sendMessage(Config.stackedItemPlayer);
-        }
-        e.getTrackedItem().quarantine();
     }
 
 

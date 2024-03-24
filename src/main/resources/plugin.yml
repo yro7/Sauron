@@ -1,7 +1,10 @@
 name: Sauron
 version: '${project.version}'
 main: fr.yronusa.sauron.Sauron
+authors:
+  - Yronusa
 api-version: '1.19'
+depend: [SafeNBT]
 commands:
   sauron:
     description: help command

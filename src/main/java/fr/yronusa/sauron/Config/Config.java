@@ -15,6 +15,8 @@ public class Config {
     // PLugin settings
     public static int delay;
 
+    public static boolean saveItemData;
+
     public static int automaticUpdateInterval;
 
     public static boolean trackStackedItems;
@@ -45,6 +47,7 @@ public class Config {
     public static String trackEmpty;
 
     public static String insufficientPermission;
+    public static String blacklistedItemPlayer;
 
 
     public static boolean load(){
@@ -76,12 +79,14 @@ public class Config {
         automaticUpdateInterval = config.getInt("settings.automatic-update-interval");
         clearStackedItems = config.getBoolean("settings.clear-stacked-items");
         trackStackedItems = config.getBoolean("settings.track-stacked-items");
+        saveItemData = config.getBoolean("settings.save-item-data");
     }
 
     private static void loadMessages() {
         notTracked = get("messages.not-tracked");
         dupeFoundPlayer = get("messages.dupe-found-player");
         stackedItemPlayer = get("messages.stacked-item-player");
+        blacklistedItemPlayer = get("messages.blacklisted-item-found-player");
         helpCommand = config.getStringList("messages.commands.help");
         reloadSuccessful = get("messages.commands.reload");
         insufficientPermission = get("messages.commands.insufficient-permission");

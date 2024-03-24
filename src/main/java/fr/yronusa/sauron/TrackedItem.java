@@ -3,6 +3,7 @@ package fr.yronusa.sauron;
 import fr.yronusa.sauron.Config.Config;
 import fr.yronusa.sauron.Config.TrackingRule;
 import fr.yronusa.sauron.Database.Database;
+import fr.yronusa.sauron.Event.BlacklistedItemDetectedEvent;
 import fr.yronusa.sauron.Event.DupeDetectedEvent;
 import fr.yronusa.sauron.Event.ItemStartTrackingEvent;
 import fr.yronusa.sauron.Event.StackedItemDetectedEvent;
@@ -130,7 +131,17 @@ public class TrackedItem {
             return;
         }
 
+
         Timestamp newDate = Sauron.getActualDate();
+
+        CompletableFuture<Boolean> isBlacklisted = CompletableFuture.supplyAsync(() -> Database.isBlacklisted(this));
+        isBlacklisted.thenAccept((res) -> {
+            if(res){
+                BlacklistedItemDetectedEvent blacklistDetectEvent = new BlacklistedItemDetectedEvent(this);
+                // Necessary because in the newest version of Spigot, Event can't be called from async thread.
+                Bukkit.getScheduler().runTask(Sauron.getInstance(), () -> Bukkit.getPluginManager().callEvent(blacklistDetectEvent));
+            }
+        });
         CompletableFuture<Boolean> isDupli = CompletableFuture.supplyAsync(() -> Database.isDuplicated(this));
         isDupli.exceptionally(error -> {
             if(Sauron.database) Database.update(this, newDate);

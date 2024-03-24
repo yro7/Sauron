@@ -54,18 +54,18 @@ public class Log {
         logger.severe("This is a test severe message.");
     }
 
-    public static void dupe(UUID itemID, Player player, Location location){
-        logger.log(Level.SEVERE, "Duplicated item found.", new Object[]{itemID, player.getName(), toString(location)});
+    public static void dupe(UUID itemID, Player player, Location location, String base64){
+        logger.log(Level.SEVERE, "Duplicated item found.", new Object[]{itemID, player.getName(), toString(location), base64});
         sendMessageAdmin("§c[Sauron] Duplicated item found at " + toString(location) + " by player " + player.getName());
     }
 
-    public static void stackedFound(UUID itemId, Player player, Location location, int quantity)    {
-        logger.log(Level.SEVERE, "Stacked items found. Quantity : " + quantity,new Object[]{itemId,player, toString(location)});
+    public static void stackedFound(UUID itemId, Player player, Location location, int quantity, String base64)    {
+        logger.log(Level.SEVERE, "Stacked items found. Quantity : " + quantity,new Object[]{itemId,player, toString(location), base64});
         sendMessageAdmin("§c[Sauron] Stacked item found at " + toString(location) + " by player " + player.getName() + ". quantity : " + quantity);
     }
 
-    public static void blacklistFound(UUID itemId, Player player, Location location, int quantity)    {
-        logger.log(Level.SEVERE, "Blacklisted item found.",new Object[]{itemId,player, toString(location)});
+    public static void blacklistFound(UUID itemId, Player player, Location location, String base64)    {
+        logger.log(Level.SEVERE, "Blacklisted item found.",new Object[]{itemId,player, toString(location), base64});
         sendMessageAdmin("§c[Sauron] Blacklisted item found at " + toString(location) + " by player " + player.getName());
     }
 
@@ -79,6 +79,7 @@ public class Log {
                 builder.append("  Object UUID: ").append(getParam(record, 0)).append("\n");
                 builder.append("  Player: ").append(getParam(record, 1)).append("\n");
                 builder.append("  Location: ").append(getParam(record,2)).append("\n");
+                builder.append("  Item Base 64 : ").append(getParam(record, 3)).append("\n");
                 builder.append("  Info: ").append(formatMessage(record)).append("\n");
                 builder.append("\n");
                 return builder.toString();
