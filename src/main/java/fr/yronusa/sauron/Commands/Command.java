@@ -16,6 +16,7 @@ import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
+import java.util.UUID;
 
 public class Command implements CommandExecutor {
 
@@ -110,8 +111,11 @@ public class Command implements CommandExecutor {
 
         else{
             TrackedItem trackedItem = new TrackedItem(item);
-            Database.blacklist(trackedItem, trackedItem.getOriginalID());
+            UUID oldID = trackedItem.getOriginalID();
+            Database.blacklist(trackedItem, oldID);
             trackedItem.resetUUID();
+            Database.add(trackedItem);
+
         }
     }
 

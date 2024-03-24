@@ -109,7 +109,7 @@ public class Database {
                 lastUpdateTimestamp = resultSet.getTimestamp("LAST_UPDATE");
                 // Print or use the timestamp as needed
             } else {
-                System.out.println("[Sauron] No data found for UUID: " + uuid);
+                System.out.println("[Sauron - GetLastUpdate] No data found for UUID: " + uuid);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -143,6 +143,9 @@ public class Database {
         return null;
     }
     public static void update(TrackedItem item, Timestamp newDate) {
+
+        if(isBlacklisted(item)) return;
+        // Necessary to avoid a conflict in updating. HAS ABSOLUTELY TO BE IMRPOVED.
 
         String verif = "SELECT 1 FROM TRACKED_ITEMS WHERE UUID = ?";
         String statement = "UPDATE TRACKED_ITEMS SET LAST_UPDATE = ? WHERE UUID = ?";

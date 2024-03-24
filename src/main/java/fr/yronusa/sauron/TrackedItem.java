@@ -7,6 +7,7 @@ import fr.yronusa.sauron.Event.BlacklistedItemDetectedEvent;
 import fr.yronusa.sauron.Event.DupeDetectedEvent;
 import fr.yronusa.sauron.Event.ItemStartTrackingEvent;
 import fr.yronusa.sauron.Event.StackedItemDetectedEvent;
+import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
@@ -131,9 +132,60 @@ public class TrackedItem {
             return;
         }
 
+        CompletableFuture<Boolean> isBlacklisted = CompletableFuture.supplyAsync(() -> Database.isBlacklisted(this)).exceptionally(error -> false);
+        CompletableFuture<Boolean> isDupli = CompletableFuture.supplyAsync(() -> Database.isDuplicated(this)).exceptionally(error -> {
+            Timestamp newDate = Sauron.getActualDate();
+            if(Sauron.database) Database.update(this, newDate);
+            this.getItemMutable().updateDate(newDate);
+            return false;
+        });
+        CompletableFuture<Pair<Boolean,Boolean>> combinedResult = isBlacklisted.thenCombine(isDupli, (blacklist, dupe) -> new Pair<>(){
 
-        Timestamp newDate = Sauron.getActualDate();
+            @Override
+            public Boolean setValue(Boolean value) {
+                return null;
+            }
 
+            @Override
+            public Boolean getLeft() {
+                if(blacklist == null) return false;
+                return blacklist;
+            }
+
+            @Override
+            public Boolean getRight() {
+                return dupe;
+            }
+        });
+
+        combinedResult.thenAccept(resPair -> {
+            System.out.println("is blacklisted : " + resPair.getLeft());
+            System.out.println("is duplicated : " + resPair.getRight());
+            if(resPair.getLeft()){
+                System.out.println("prout1");
+                // Blacklisted item detected:
+                BlacklistedItemDetectedEvent blacklistDetectEvent = new BlacklistedItemDetectedEvent(this);
+                // Necessary because in the newest version of Spigot, Event can't be called from async thread.
+                Bukkit.getScheduler().runTask(Sauron.getInstance(), () -> Bukkit.getPluginManager().callEvent(blacklistDetectEvent));
+                return;
+            }
+
+            if(resPair.getRight()){
+                System.out.println("prout2");
+                // Dupe item detected:
+                DupeDetectedEvent dupeDetectEvent = new DupeDetectedEvent(this, this.getPlayer());
+                Bukkit.getScheduler().runTask(Sauron.getInstance(), () -> Bukkit.getPluginManager().callEvent(dupeDetectEvent));
+                return;
+            }
+
+            // If the item is neither blacklisted nor duplicated, we update it.
+            System.out.println("prout3");
+            Timestamp newDate = Sauron.getActualDate();
+            Database.update(this, newDate);
+            this.getItemMutable().updateDate(newDate);
+
+        });
+       /** // After updating the item, checks if it is blacklisted.
         CompletableFuture<Boolean> isBlacklisted = CompletableFuture.supplyAsync(() -> Database.isBlacklisted(this));
         isBlacklisted.exceptionally(error -> false);
         isBlacklisted.thenAccept((res) -> {
@@ -143,6 +195,8 @@ public class TrackedItem {
                 Bukkit.getScheduler().runTask(Sauron.getInstance(), () -> Bukkit.getPluginManager().callEvent(blacklistDetectEvent));
             }
         });
+
+        // Checks if the item is duplicated, and if so, fires the appropriate event.
         CompletableFuture<Boolean> isDupli = CompletableFuture.supplyAsync(() -> Database.isDuplicated(this));
         isDupli.exceptionally(error -> {
             if(Sauron.database) Database.update(this, newDate);
@@ -161,7 +215,8 @@ public class TrackedItem {
                 Database.update(this, newDate);
                 this.getItemMutable().updateDate(newDate);
             }
-        });
+        });**/
+
     }
 
     public void update() {
@@ -199,7 +254,6 @@ public class TrackedItem {
         UUID newID = UUID.randomUUID();
         this.originalID = newID;
         this.getItemMutable().changeUUID(newID);
-        this.update(true);
     }
 
 }
