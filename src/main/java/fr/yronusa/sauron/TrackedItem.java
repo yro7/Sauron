@@ -135,6 +135,7 @@ public class TrackedItem {
         Timestamp newDate = Sauron.getActualDate();
 
         CompletableFuture<Boolean> isBlacklisted = CompletableFuture.supplyAsync(() -> Database.isBlacklisted(this));
+        isBlacklisted.exceptionally(error -> false);
         isBlacklisted.thenAccept((res) -> {
             if(res){
                 BlacklistedItemDetectedEvent blacklistDetectEvent = new BlacklistedItemDetectedEvent(this);

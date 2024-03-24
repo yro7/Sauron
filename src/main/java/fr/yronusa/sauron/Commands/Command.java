@@ -16,7 +16,6 @@ import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
-import java.util.UUID;
 
 public class Command implements CommandExecutor {
 
@@ -111,9 +110,8 @@ public class Command implements CommandExecutor {
 
         else{
             TrackedItem trackedItem = new TrackedItem(item);
-            UUID oldID = trackedItem.getOriginalID();
+            Database.blacklist(trackedItem, trackedItem.getOriginalID());
             trackedItem.resetUUID();
-            Database.blacklist(trackedItem, oldID);
         }
     }
 
@@ -121,7 +119,7 @@ public class Command implements CommandExecutor {
     public void reload(Player p){
         Sauron.getInstance().reloadConfig();
         Config.load();
-        Initializer.initializeDatabase();
+        Sauron.database = Initializer.initializeDatabase();
         p.sendMessage(Config.reloadSuccessful);
     }
 

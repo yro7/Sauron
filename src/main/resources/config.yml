@@ -35,7 +35,7 @@ settings:
 messages:
   dupe-found-player: "§7* §cYour item has been flagged has duplicated, please contact an administrator."
   stacked-item-player: "§7* §cHaving such stacked item is illegal, please contact an administrator."
-  blacklisted-item-found-player:
+  blacklisted-item-found-player: "§7* §cThis item has been blacklisted, please contact an administrator."
   not-tracked: "§7* §cThis item is not tracked."
   commands:
     insufficient-permission: "§7* §cYou do not have the permission to use that command."

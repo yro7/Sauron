@@ -192,7 +192,7 @@ public class Database {
 
     public static void blacklist(TrackedItem trackedItem, UUID oldID) {
 
-        String statement = "UPDATE TRACKED_ITEMS SET BLACKLIST = ? WHERE UUID = ?";
+        String statement = "UPDATE TRACKED_ITEMS SET IS_BLACKLISTED = ? WHERE UUID = ?";
         Bukkit.getScheduler().runTaskAsynchronously(Sauron.getInstance(), new Runnable() {
             @Override
             public void run() {
@@ -202,7 +202,7 @@ public class Database {
                     PreparedStatement preparedStatement = conn.prepareStatement(statement);
                     preparedStatement.setInt(1, 1);
                     preparedStatement.setString(2, oldID.toString());
-
+                    System.out.println("blacklisting item blabla");
                     int i = preparedStatement.executeUpdate();
                     if (i > 0) {
                         DatabaseItemBlacklistEvent blacklistEvent = new DatabaseItemBlacklistEvent(trackedItem);
@@ -237,18 +237,17 @@ public class Database {
             PreparedStatement preparedStatement = conn.prepareStatement(statement);
             preparedStatement.setString(1, item.getOriginalID().toString());
             ResultSet resultSet = preparedStatement.executeQuery();
-
-            // Check if the result set has data
             if (resultSet.next()) {
-                // Retrieve the last update timestamp from the result set
-                res = resultSet.getBoolean("IS_BLACKLISTED");
-                // Print or use the timestamp as needed
+                int blacklisted = resultSet.getInt("IS_BLACKLISTED");
+                System.out.println("blacklisted tiny int res : " + blacklisted);
+                res = blacklisted != 0;
             } else {
                 System.out.println("[Sauron] No data found for UUID: " + item.getOriginalID());
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        System.out.println("item is blacklisted ?? " + res);
         return res;
     }
 

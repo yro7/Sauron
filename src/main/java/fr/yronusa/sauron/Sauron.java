@@ -47,6 +47,7 @@ public final class Sauron extends JavaPlugin {
 
     private void registerEvents() {
         getServer().getPluginManager().registerEvents(new Tracker(), this);
+        getServer().getPluginManager().registerEvents(new Listener(), this);
     }
     @Override
     public void onDisable() {
