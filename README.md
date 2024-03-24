@@ -1,5 +1,6 @@
 # Sauron
-Keep an eye on your player's item
+## Keep an eye on your player's item
+
 An anti-dupe and tracking plugin allowing you to make items non-fongible.
 
 Sauron lets you define "tracking rules" and items corresponding to these rules will be tracked.
