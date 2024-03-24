@@ -12,10 +12,10 @@ import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
 
+import java.util.ArrayDeque;
 import java.util.Collection;
-import java.util.Stack;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Tracker implements org.bukkit.event.Listener {
 
@@ -90,70 +90,66 @@ public class Tracker implements org.bukkit.event.Listener {
     }
 
 
-    public static void updatePlayersInventory(){
-        BukkitTask task = new BukkitRunnable() {
+    public static void updatePlayersInventorySafe(){
+        new BukkitRunnable() {
             @Override
             public void run() {
                 Collection<? extends Player> onlinePlayers = Bukkit.getOnlinePlayers();
-                Stack<Player> onlinePlayersStack = new Stack<>();
-                onlinePlayersStack.addAll(onlinePlayers);
+                ArrayDeque<Player> onlinePlayersDeque = new ArrayDeque<>(onlinePlayers);
                 new BukkitRunnable() {
                     @Override
                     public void run() {
-                        if(onlinePlayers.isEmpty()){
+                        if(onlinePlayersDeque.isEmpty()){
                             this.cancel();
                             return;
                         }
 
-                        Player p = onlinePlayersStack.pop();
-                        System.out.println("NOW UPDATING PLAYER " + p.getDisplayName());
+                        Player p = onlinePlayersDeque.pop();
                         while(!p.isOnline()){
-                            p = onlinePlayersStack.pop();
+                            if(onlinePlayersDeque.isEmpty()){
+                                this.cancel();
+                                return;
+                            }
+                            p = onlinePlayersDeque.pop();
                         }
+                        System.out.println("[SAURON] Now checking " + p.getName() + "'s inventory.");
                         Tracker.updateInventorySafely(p.getInventory());
+                        return;
                     }
                 }.runTaskTimer(Sauron.getInstance(), 0, 2*20);
                 // Checks the inventory one-by-one to be more gentle with the database requests, if there are a lot of
                 // item to update. 2s interval between each inventory check.
-
             }
-        }.runTaskTimer(Sauron.getInstance(), 0, 10*20*5);
+        }.runTaskTimer(Sauron.getInstance(), 0, 5*20*60);
+        // every 5 minutes: update each players inventory (safely)
 
 
     }
 
-    public static void updateInventorySafely(Inventory inventory){
-
+    public static void updateInventorySafely(Inventory inventory) {
         int size = inventory.getSize();
-        int[] position = {0};
+        AtomicInteger position = new AtomicInteger(0);
         new BukkitRunnable() {
             @Override
             public void run() {
-                System.out.println("NOW CHECKING ITEM AT POSITION " + position[0]);
-                while(!ItemMutable.hasTrackingID(inventory.getItem(position[0]))){
-                    if(position[0] >= size){
-                        this.cancel();
-                        return;
-                    }
-                    position[0]++;
-                }
-
-                ItemMutable itemToCheck = new ItemMutable(inventory.getItem(position[0]), inventory, position[0]);
-                new TrackedItem(itemToCheck).update();
-                position[0]++;
-
-                if(position[0] > size){
+                if (position.get() >= size) {
                     this.cancel();
+                    return;
                 }
 
+                while (position.get() < size && !ItemMutable.hasTrackingID(inventory.getItem(position.get()))) {
+                    position.incrementAndGet();
+                }
 
-                // Checks the inventory's content one-by-one to be more gentle with the database requests.
-
+                if (position.get() < size) {
+                    ItemMutable itemToCheck = new ItemMutable(inventory.getItem(position.get()), inventory, position.get());
+                    new TrackedItem(itemToCheck).update();
+                    position.incrementAndGet();
+                }
             }
         }.runTaskTimer(Sauron.getInstance(), 0, Config.automaticUpdateInterval);
-
-
     }
+
 
 
 

@@ -186,8 +186,6 @@ public class Database {
     public static boolean isDuplicated(TrackedItem item){
         Timestamp databaseTimestamp = Database.getLastUpdate(item.getOriginalID());
         Timestamp itemTimestamp = item.getLastUpdateItem();
-        System.out.println("dtb ts : " + databaseTimestamp);
-        System.out.println("item ts : " + itemTimestamp);
         return itemTimestamp.before(databaseTimestamp);
     }
 
