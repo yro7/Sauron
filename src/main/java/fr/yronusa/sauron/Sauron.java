@@ -1,5 +1,13 @@
+/**
+ *
+ *
+ * This project is licensed under the GNU General Public License version 3 (GNU GPL-3.0).
+ * See the [LICENSE](LICENSE) file for details.
+ *
+ *
+ *
+**/
 package fr.yronusa.sauron;
-
 import fr.yronusa.sauron.Commands.Command;
 import fr.yronusa.sauron.Config.Config;
 import fr.yronusa.sauron.Database.Database;
@@ -10,6 +18,10 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+
+/**
+ * @author yronusa
+ */
 
 public final class Sauron extends JavaPlugin {
 

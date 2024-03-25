@@ -70,7 +70,12 @@ public class Tracker implements org.bukkit.event.Listener {
     }
 
 
-    public static void updatePlayersInventorySafe(){
+    /**
+     * Safely updates the inventory of all online players.
+     * This method iterates through each online player's inventory and updates the items with tracking IDs.
+     * It uses a more gentle approach by checking one player's inventory at a time to reduce database requests.
+     */
+    public static void updatePlayersInventorySafe() {
         new BukkitRunnable() {
             @Override
             public void run() {
@@ -79,33 +84,41 @@ public class Tracker implements org.bukkit.event.Listener {
                 new BukkitRunnable() {
                     @Override
                     public void run() {
-                        if(onlinePlayersDeque.isEmpty()){
+                        if (onlinePlayersDeque.isEmpty()) {
+                            // If there are no more online players to check, cancel the task
                             this.cancel();
                             return;
                         }
 
                         Player p = onlinePlayersDeque.pop();
-                        while(!p.isOnline()){
-                            if(onlinePlayersDeque.isEmpty()){
+                        while (!p.isOnline()) {
+                            // Skip disconnected players
+                            if (onlinePlayersDeque.isEmpty()) {
+                                // If there are no more online players to check, cancel the task
                                 this.cancel();
                                 return;
                             }
                             p = onlinePlayersDeque.pop();
                         }
                         System.out.println("[SAURON] Now checking " + p.getName() + "'s inventory.");
+                        // Update the inventory of the current player safely
                         Tracker.updateInventorySafely(p.getInventory());
-                        return;
                     }
-                }.runTaskTimer(Sauron.getInstance(), 0, 2*20);
-                // Checks the inventory one-by-one to be more gentle with the database requests, if there are a lot of
-                // item to update. 2s interval between each inventory check.
+                }.runTaskTimer(Sauron.getInstance(), 0, 2 * 20);
+                // Check each player's inventory every 2 seconds to be gentle with the database requests
             }
-        }.runTaskTimer(Sauron.getInstance(), 0, 5*20*60);
-        // every 5 minutes: update each players inventory (safely)
-
-
+        }.runTaskTimer(Sauron.getInstance(), 0, 5 * 20 * 60);
+        // Schedule the task to run every 5 minutes to update each player's inventory safely
     }
 
+
+    /**
+     * Iterates through the inventory, checks for items with tracking IDs,
+     * and updates them accordingly.
+     * This method will wait every item update/startTracking to ease the database.
+     *
+     * @param inventory The inventory to update safely.
+     */
     public static void updateInventorySafely(Inventory inventory) {
         int size = inventory.getSize();
         AtomicInteger position = new AtomicInteger(0);
@@ -113,15 +126,18 @@ public class Tracker implements org.bukkit.event.Listener {
             @Override
             public void run() {
                 if (position.get() >= size) {
+                    // If reached the end of the inventory, cancel the task
                     this.cancel();
                     return;
                 }
 
+                // Find the next item with a tracking ID
                 while (position.get() < size && !ItemMutable.hasTrackingID(inventory.getItem(position.get()))) {
                     position.incrementAndGet();
                 }
 
                 if (position.get() < size) {
+                    // If found an item with a tracking ID, create a TrackedItem and update it
                     ItemMutable itemToCheck = new ItemMutable(inventory.getItem(position.get()), inventory, position.get());
                     new TrackedItem(itemToCheck).update();
                     position.incrementAndGet();
@@ -129,6 +145,7 @@ public class Tracker implements org.bukkit.event.Listener {
             }
         }.runTaskTimer(Sauron.getInstance(), 0, Config.automaticUpdateInterval);
     }
+
 
 
 

@@ -144,9 +144,6 @@ public class Database {
     }
     public static void update(TrackedItem item, Timestamp newDate) {
 
-        if(isBlacklisted(item)) return;
-        // Necessary to avoid a conflict in updating. HAS ABSOLUTELY TO BE IMRPOVED.
-
         String verif = "SELECT 1 FROM TRACKED_ITEMS WHERE UUID = ?";
         String statement = "UPDATE TRACKED_ITEMS SET LAST_UPDATE = ? WHERE UUID = ?";
         Bukkit.getScheduler().runTaskAsynchronously(Sauron.getInstance(), new Runnable() {
@@ -242,7 +239,6 @@ public class Database {
             ResultSet resultSet = preparedStatement.executeQuery();
             if (resultSet.next()) {
                 int blacklisted = resultSet.getInt("IS_BLACKLISTED");
-                System.out.println("blacklisted tiny int res : " + blacklisted);
                 res = blacklisted != 0;
             } else {
                 System.out.println("[Sauron] No data found for UUID: " + item.getOriginalID());
@@ -250,7 +246,6 @@ public class Database {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        System.out.println("item is blacklisted ?? " + res);
         return res;
     }
 

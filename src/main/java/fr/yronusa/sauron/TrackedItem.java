@@ -65,27 +65,38 @@ public class TrackedItem {
         return this.item;
     }
 
-    public static TrackedItem startTracking(ItemMutable item){
-
-        if(item.hasTrackingID()){
+    /**
+     * Starts tracking the given item.
+     *
+     * @param item The item to start tracking.
+     * @return The TrackedItem object representing the tracked item.
+     */
+    public static TrackedItem startTracking(ItemMutable item) {
+        // Check if the item already has a tracking ID
+        if (item.hasTrackingID()) {
+            // If yes, create a TrackedItem and update it
             TrackedItem trackedItem = new TrackedItem(item);
             trackedItem.update();
             return trackedItem;
-        }
-
-        else{
+        } else {
+            // If no tracking ID exists, generate a new one and start tracking
             UUID originalID = UUID.randomUUID();
             item.setTrackable(originalID, Sauron.getActualDate());
             TrackedItem trackedItem = new TrackedItem(item);
 
-            if(Sauron.database) {
+            // Add the item to the database if enabled
+            if (Sauron.database) {
                 Database.add(trackedItem);
             }
+
+            // Trigger event for item tracking start
             ItemStartTrackingEvent trackEvent = new ItemStartTrackingEvent(trackedItem);
             Bukkit.getPluginManager().callEvent(trackEvent);
+
             return trackedItem;
         }
     }
+
 
     public static void update(Inventory inv){
         int position = 0;
@@ -120,27 +131,38 @@ public class TrackedItem {
         return this.getItemMutable().getLastUpdate();
     }
 
+    /**
+     * Updates the item with optional force update flag.
+     *
+     * @param forceUpdate A boolean flag indicating whether to force the update regardless of other conditions.
+     *                    If true, the update will be executed even if the item doesn't meet update criteria.
+     *                    If false, the update will be skipped unless {@link #shouldUpdate()} returns true.
+     */
     public void update(boolean forceUpdate) {
-
-        if(!forceUpdate && !shouldUpdate()){
+        // Check if the update should be skipped based on conditions
+        if (!forceUpdate && !shouldUpdate()) {
             return;
         }
 
-        if(this.getItem() != null && Config.clearStackedItems && this.getItem().getAmount() > 1){
+        // Check for stacked items and trigger event if configured to clear stacked items
+        if (this.getItem() != null && Config.clearStackedItems && this.getItem().getAmount() > 1) {
             StackedItemDetectedEvent stackedItemDetected = new StackedItemDetectedEvent(this);
             Bukkit.getPluginManager().callEvent(stackedItemDetected);
             return;
         }
 
+        // Asynchronously check if the item is blacklisted or duplicated
         CompletableFuture<Boolean> isBlacklisted = CompletableFuture.supplyAsync(() -> Database.isBlacklisted(this)).exceptionally(error -> false);
         CompletableFuture<Boolean> isDupli = CompletableFuture.supplyAsync(() -> Database.isDuplicated(this)).exceptionally(error -> {
+            // Handle duplication check error and update the item if necessary
             Timestamp newDate = Sauron.getActualDate();
-            if(Sauron.database) Database.update(this, newDate);
+            if (Sauron.database) Database.update(this, newDate);
             this.getItemMutable().updateDate(newDate);
             return false;
         });
-        CompletableFuture<Pair<Boolean,Boolean>> combinedResult = isBlacklisted.thenCombine(isDupli, (blacklist, dupe) -> new Pair<>(){
 
+        // Combine the results of blacklist and duplication checks
+        CompletableFuture<Pair<Boolean, Boolean>> combinedResult = isBlacklisted.thenCombine(isDupli, (blacklist, dupe) -> new Pair<>() {
             @Override
             public Boolean setValue(Boolean value) {
                 return null;
@@ -148,7 +170,7 @@ public class TrackedItem {
 
             @Override
             public Boolean getLeft() {
-                if(blacklist == null) return false;
+                if (blacklist == null) return false;
                 return blacklist;
             }
 
@@ -158,66 +180,29 @@ public class TrackedItem {
             }
         });
 
+        // Process the combined results
         combinedResult.thenAccept(resPair -> {
-            System.out.println("is blacklisted : " + resPair.getLeft());
-            System.out.println("is duplicated : " + resPair.getRight());
-            if(resPair.getLeft()){
-                System.out.println("prout1");
-                // Blacklisted item detected:
+            if (resPair.getLeft()) {
+                // Trigger event for blacklisted item detection
                 BlacklistedItemDetectedEvent blacklistDetectEvent = new BlacklistedItemDetectedEvent(this);
-                // Necessary because in the newest version of Spigot, Event can't be called from async thread.
                 Bukkit.getScheduler().runTask(Sauron.getInstance(), () -> Bukkit.getPluginManager().callEvent(blacklistDetectEvent));
                 return;
             }
 
-            if(resPair.getRight()){
-                System.out.println("prout2");
-                // Dupe item detected:
+            if (resPair.getRight()) {
+                // Trigger event for duplicated item detection
                 DupeDetectedEvent dupeDetectEvent = new DupeDetectedEvent(this, this.getPlayer());
                 Bukkit.getScheduler().runTask(Sauron.getInstance(), () -> Bukkit.getPluginManager().callEvent(dupeDetectEvent));
                 return;
             }
 
-            // If the item is neither blacklisted nor duplicated, we update it.
-            System.out.println("prout3");
+            // If the item is neither blacklisted nor duplicated, update it
             Timestamp newDate = Sauron.getActualDate();
             Database.update(this, newDate);
             this.getItemMutable().updateDate(newDate);
-
         });
-       /** // After updating the item, checks if it is blacklisted.
-        CompletableFuture<Boolean> isBlacklisted = CompletableFuture.supplyAsync(() -> Database.isBlacklisted(this));
-        isBlacklisted.exceptionally(error -> false);
-        isBlacklisted.thenAccept((res) -> {
-            if(res){
-                BlacklistedItemDetectedEvent blacklistDetectEvent = new BlacklistedItemDetectedEvent(this);
-                // Necessary because in the newest version of Spigot, Event can't be called from async thread.
-                Bukkit.getScheduler().runTask(Sauron.getInstance(), () -> Bukkit.getPluginManager().callEvent(blacklistDetectEvent));
-            }
-        });
-
-        // Checks if the item is duplicated, and if so, fires the appropriate event.
-        CompletableFuture<Boolean> isDupli = CompletableFuture.supplyAsync(() -> Database.isDuplicated(this));
-        isDupli.exceptionally(error -> {
-            if(Sauron.database) Database.update(this, newDate);
-            this.getItemMutable().updateDate(newDate);
-            return false;
-        });
-        isDupli.thenAccept((res) -> {
-            if(res){
-                DupeDetectedEvent dupeDetectEvent = new DupeDetectedEvent(this, this.getPlayer());
-
-                // Necessary because in the newest version of Spigot, Event can't be called from async thread.
-                Bukkit.getScheduler().runTask(Sauron.getInstance(), () -> Bukkit.getPluginManager().callEvent(dupeDetectEvent));
-            }
-
-            else{
-                Database.update(this, newDate);
-                this.getItemMutable().updateDate(newDate);
-            }
-        });**/
-
     }
+
 
     public void update() {
         update(false);
