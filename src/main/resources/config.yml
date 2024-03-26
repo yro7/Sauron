@@ -27,9 +27,13 @@ rules:
     has_nbt:
       - capybaraArmor
 settings:
+  automatic-inventory-updating:
+    enabled: true
+    delay-between-checks: 300
+    delay-between-players: 2
+    delay-between-items: 0.5
   save-item-data: false
-  delay-in-hand: 10
-  automatic-update-interval: 1
+  update-interval: 10
   track-stacked-items: false
   clear-stacked-items: true
 messages:
