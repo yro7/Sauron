@@ -198,7 +198,7 @@ public class TrackedItem {
 
             // If the item is neither blacklisted nor duplicated, update it
             Timestamp newDate = Sauron.getActualDate();
-            Database.update(this, newDate);
+            if(Sauron.database) Database.update(this, newDate);
             this.getItemMutable().updateDate(newDate);
         });
     }
@@ -212,7 +212,7 @@ public class TrackedItem {
         Timestamp itemTimestamp = this.getLastUpdateItem();
         Timestamp actualTime = Sauron.getActualDate();
         long difference = actualTime.getTime() - itemTimestamp.getTime();
-        return difference / 1000 >= Config.delay;
+        return difference / 1000 >= Config.updateInterval;
     }
 
 

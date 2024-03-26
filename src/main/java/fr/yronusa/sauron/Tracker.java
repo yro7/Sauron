@@ -17,6 +17,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class Tracker implements org.bukkit.event.Listener {
 
+    public static BukkitRunnable currentPlayersCheck;
 
     public void execute(Inventory inventory, ItemStack item, int slot){
         if(item==null){
@@ -76,7 +77,7 @@ public class Tracker implements org.bukkit.event.Listener {
      * It uses a more gentle approach by checking one player's inventory at a time to reduce database requests.
      */
     public static void updatePlayersInventorySafe() {
-        new BukkitRunnable() {
+        BukkitRunnable task = new BukkitRunnable() {
             @Override
             public void run() {
                 Collection<? extends Player> onlinePlayers = Bukkit.getOnlinePlayers();
@@ -94,21 +95,21 @@ public class Tracker implements org.bukkit.event.Listener {
                         while (!p.isOnline()) {
                             // Skip disconnected players
                             if (onlinePlayersDeque.isEmpty()) {
-                                // If there are no more online players to check, cancel the task
+                                // If there are no more players to check, cancel the task
                                 this.cancel();
                                 return;
                             }
                             p = onlinePlayersDeque.pop();
                         }
                         System.out.println("[SAURON] Now checking " + p.getName() + "'s inventory.");
-                        // Update the inventory of the current player safely
                         Tracker.updateInventorySafely(p.getInventory());
                     }
-                }.runTaskTimer(Sauron.getInstance(), 0, 2 * 20);
-                // Check each player's inventory every 2 seconds to be gentle with the database requests
+                }.runTaskTimer(Sauron.getInstance(), 0, Config.delayBetweenPlayers * 20L);
             }
-        }.runTaskTimer(Sauron.getInstance(), 0, 5 * 20 * 60);
-        // Schedule the task to run every 5 minutes to update each player's inventory safely
+        };
+
+        task.runTaskTimer(Sauron.getInstance(), 0, Config.delayBetweenChecks * 20L);
+        currentPlayersCheck = task;
     }
 
 

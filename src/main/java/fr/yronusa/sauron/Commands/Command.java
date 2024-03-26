@@ -6,6 +6,7 @@ import fr.yronusa.sauron.Database.Initializer;
 import fr.yronusa.sauron.ItemMutable;
 import fr.yronusa.sauron.Sauron;
 import fr.yronusa.sauron.TrackedItem;
+import fr.yronusa.sauron.Tracker;
 import org.bukkit.Material;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -125,6 +126,10 @@ public class Command implements CommandExecutor {
         Config.load();
         Sauron.database = Initializer.initializeDatabase();
         p.sendMessage(Config.reloadSuccessful);
+
+        // Reload the automatic tracker
+        if(Tracker.currentPlayersCheck != null) Tracker.currentPlayersCheck.cancel();
+        Tracker.updatePlayersInventorySafe();
     }
 
     public void list(Player p){

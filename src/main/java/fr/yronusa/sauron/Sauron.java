@@ -42,7 +42,8 @@ public final class Sauron extends JavaPlugin {
         registerCommands();
         database = Initializer.initializeDatabase();
         Log.initialize();
-        Tracker.updatePlayersInventorySafe();
+
+        if(Config.automaticInventoryUpdating) Tracker.updatePlayersInventorySafe();
 
 
     }
@@ -67,7 +68,6 @@ public final class Sauron extends JavaPlugin {
 
 
         System.out.println("[Sauron] Closing database connection.");
-
         try {
             if(Database.connection != null && !Database.connection.isClosed()) Database.connection.close();
             if(Initializer.sqlServerConnection != null && !Initializer.sqlServerConnection.isClosed()) Initializer.sqlServerConnection.close();
