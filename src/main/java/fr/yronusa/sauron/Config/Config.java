@@ -12,17 +12,31 @@ public class Config {
 
     public static List<TrackingRule> trackingRules;
 
-    // PLugin settings
-    public static int delay;
-
+    // Plugin settings
+    public static int updateInterval;
     public static boolean saveItemData;
 
     public static int automaticUpdateInterval;
 
+    /**
+     * Should the plugin apply a tracker on {@link org.bukkit.inventory.ItemStack} corresponding to a {@link TrackingRule} with amount > 1 ?
+     * <p>
+     * CAUTION: Improper use may cause issues with the plugin.
+     */
     public static boolean trackStackedItems;
+
+    /**
+     Should the plugin clear stacked tracked items ? A item is considered as "tracked" if it has a sauron_id nbt.
+      */
     public static boolean clearStackedItems;
 
-    // Database data
+    public static boolean automaticInventoryUpdating;
+    public static int delayBetweenChecks;
+    public static int delayBetweenPlayers;
+    public static long delayBetweenItems;
+
+
+    // Database credentials
 
     public static Database.TYPE databaseType;
     public static String databaseHost;
@@ -75,11 +89,16 @@ public class Config {
     }
 
     private static void loadSettings(){
-        delay = config.getInt("settings.delay-in-hand");
-        automaticUpdateInterval = config.getInt("settings.automatic-update-interval");
+        updateInterval = config.getInt("settings.update-interval");
         clearStackedItems = config.getBoolean("settings.clear-stacked-items");
         trackStackedItems = config.getBoolean("settings.track-stacked-items");
         saveItemData = config.getBoolean("settings.save-item-data");
+
+        automaticInventoryUpdating = config.getBoolean("settings.automatic-inventory-updating.enabled");
+        delayBetweenPlayers = config.getInt("settings.automatic-inventory-updating.delay-between-players");
+        delayBetweenItems = config.getLong("settings.automatic-inventory-updating.delay-between-items");
+        delayBetweenChecks = config.getInt("settings.automatic-inventory-updating.delay-between-checks");
+
     }
 
     private static void loadMessages() {
