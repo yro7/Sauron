@@ -51,23 +51,7 @@ public class Tracker implements org.bukkit.event.Listener {
 
     @EventHandler
     public void checkItemInContainer(InventoryOpenEvent e){
-        ItemStack[] content = e.getInventory().getContents();
-        Inventory inventory = e.getInventory();
-
-        int position = 0;
-        for(ItemStack item : content){
-            if(item == null) {
-                position++;
-                continue;
-            }
-
-            if(ItemMutable.hasTrackingID(item)){
-                ItemMutable itemMutable = new ItemMutable(item, inventory, position);
-                (new TrackedItem(itemMutable)).update(false);
-            }
-
-            position++;
-        }
+        updateInventorySafely(e.getInventory());
     }
 
 
@@ -92,8 +76,8 @@ public class Tracker implements org.bukkit.event.Listener {
                         }
 
                         Player p = onlinePlayersDeque.pop();
-                        while (!p.isOnline()) {
-                            // Skip disconnected players
+                        while (!p.isOnline() && !p.hasPermission("sauron.exempt")) {
+                            // Skip disconnected & exempts players
                             if (onlinePlayersDeque.isEmpty()) {
                                 // If there are no more players to check, cancel the task
                                 this.cancel();

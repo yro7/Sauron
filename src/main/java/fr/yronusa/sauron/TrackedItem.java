@@ -9,6 +9,7 @@ import fr.yronusa.sauron.Event.ItemStartTrackingEvent;
 import fr.yronusa.sauron.Event.StackedItemDetectedEvent;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -113,9 +114,21 @@ public class TrackedItem {
         }
     }
 
+    /**
+     *
+     * Tries to get the player that triggered the process which led to the creation of the TrackedItem.
+     * In some cases, that player won't exist, for example if the plugin scanned a container that no player was looking onto.
+     *
+     * @return the {@link Player} associated with the Tracked Item if found, null else.
+     */
     public Player getPlayer(){
-        if(this.getItemMutable().getInventory().getHolder() instanceof Player p){
+        Inventory inventory = this.getItemMutable().getInventory();;
+        if(inventory.getHolder() instanceof Player p){
             return p;
+        }
+
+        for(HumanEntity humanEntity : inventory.getViewers()){
+            if(humanEntity instanceof Player p) return p;
         }
 
         return null;
@@ -139,10 +152,14 @@ public class TrackedItem {
      *                    If false, the update will be skipped unless {@link #shouldUpdate()} returns true.
      */
     public void update(boolean forceUpdate) {
+
         // Check if the update should be skipped based on conditions
         if (!forceUpdate && !shouldUpdate()) {
             return;
         }
+
+        // Cancel if the player is exempt
+        if(this.getPlayer() != null && this.getPlayer().hasPermission("sauron.exempt")) return;
 
         // Check for stacked items and trigger event if configured to clear stacked items
         if (this.getItem() != null && Config.clearStackedItems && this.getItem().getAmount() > 1) {
