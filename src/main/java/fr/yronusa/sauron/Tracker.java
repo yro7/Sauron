@@ -2,10 +2,12 @@ package fr.yronusa.sauron;
 
 import fr.yronusa.sauron.Config.Config;
 import org.bukkit.Bukkit;
+import org.bukkit.block.Block;
+import org.bukkit.block.Container;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.inventory.InventoryMoveItemEvent;
-import org.bukkit.event.inventory.InventoryOpenEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -50,8 +52,12 @@ public class Tracker implements org.bukkit.event.Listener {
     }
 
     @EventHandler
-    public void checkItemInContainer(InventoryOpenEvent e){
-        updateInventorySafely(e.getInventory());
+    public void checkItemInOpenedChest(PlayerInteractEvent e){
+        Block block = e.getClickedBlock();
+        if(block != null && block.getState() instanceof Container container){
+            System.out.println("udpateing");
+            updateInventorySafely(container.getInventory());
+        }
     }
 
 
@@ -76,7 +82,7 @@ public class Tracker implements org.bukkit.event.Listener {
                         }
 
                         Player p = onlinePlayersDeque.pop();
-                        while (!p.isOnline() && !p.hasPermission("sauron.exempt")) {
+                        while (!p.isOnline() && p.hasPermission("sauron.exempt")) {
                             // Skip disconnected & exempts players
                             if (onlinePlayersDeque.isEmpty()) {
                                 // If there are no more players to check, cancel the task
@@ -110,22 +116,24 @@ public class Tracker implements org.bukkit.event.Listener {
         new BukkitRunnable() {
             @Override
             public void run() {
-                if (position.get() >= size) {
+                int counter = position.get();
+                if (counter >= size) {
                     // If reached the end of the inventory, cancel the task
                     this.cancel();
                     return;
                 }
 
                 // Find the next item with a tracking ID
-                while (position.get() < size && !ItemMutable.hasTrackingID(inventory.getItem(position.get()))) {
-                    position.incrementAndGet();
+                while (counter < size && !ItemMutable.hasTrackingID(inventory.getItem(counter))) {
+                    counter++;
                 }
 
-                if (position.get() < size) {
+                if (counter < size) {
                     // If found an item with a tracking ID, create a TrackedItem and update it
-                    ItemMutable itemToCheck = new ItemMutable(inventory.getItem(position.get()), inventory, position.get());
+                    ItemMutable itemToCheck = new ItemMutable(inventory.getItem(counter), inventory, counter);
                     new TrackedItem(itemToCheck).update();
-                    position.incrementAndGet();
+                    counter++;
+                    position.set(counter);
                 }
             }
         }.runTaskTimer(Sauron.getInstance(), 0, Config.automaticUpdateInterval);
