@@ -6,6 +6,7 @@ import org.bukkit.entity.Player;
 
 import java.io.File;
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -54,13 +55,19 @@ public class Log {
         logger.severe("This is a test severe message.");
     }
 
-    public static void dupe(UUID itemID, Player player, Location location, String base64){
-        logger.log(Level.SEVERE, "Duplicated item found.", new Object[]{itemID, player.getName(), toString(location), base64});
-        sendMessageAdmin("§c[Sauron] Duplicated item found at " + toString(location) + " by player " + player.getName());
+    public static void dupe(UUID itemID, Player player, Location location, String base64, Timestamp item, Timestamp database){
+        String name = "N/A";
+        if(player != null){
+            name = player.getName();
+        }
+        logger.log(Level.SEVERE, "Duplicated item found.", new Object[]{itemID, name,
+                toString(location), base64, item.toString(), database.toString()});
+        sendMessageAdmin("§c[Sauron] Duplicated item found at " + toString(location) + " by player " + name);
     }
 
     public static void stackedFound(UUID itemId, Player player, Location location, int quantity, String base64)    {
-        logger.log(Level.SEVERE, "Stacked items found. Quantity : " + quantity,new Object[]{itemId,player, toString(location), base64});
+        logger.log(Level.SEVERE, "Stacked items found. Quantity : " +
+                quantity,new Object[]{itemId,player, toString(location), base64});
         sendMessageAdmin("§c[Sauron] Stacked item found at " + toString(location) + " by player " + player.getName() + ". quantity : " + quantity);
     }
 
@@ -80,6 +87,9 @@ public class Log {
                 builder.append("  Player: ").append(getParam(record, 1)).append("\n");
                 builder.append("  Location: ").append(getParam(record,2)).append("\n");
                 builder.append("  Item Base 64 : ").append(getParam(record, 3)).append("\n");
+                builder.append("  Item's timestamp : ").append(getParam(record, 4)).append("\n");
+                builder.append("  Database timestamp : ").append(getParam(record, 5)).append("\n");
+
                 builder.append("  Info: ").append(formatMessage(record)).append("\n");
                 builder.append("\n");
                 return builder.toString();
