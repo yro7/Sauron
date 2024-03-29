@@ -60,8 +60,6 @@ public class DupeDetectedEvent extends Event {
         return this.player;
     }
 
-
-
     public Location getLocation(){
         return this.getTrackedItem().getItemMutable().getInventory().getLocation();
     }

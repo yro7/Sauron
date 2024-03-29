@@ -229,7 +229,7 @@ public class TrackedItem {
         Timestamp itemTimestamp = this.getLastUpdateItem();
         Timestamp actualTime = Sauron.getActualDate();
         long difference = actualTime.getTime() - itemTimestamp.getTime();
-        return difference / 1000 >= Config.updateInterval;
+        return difference / 1000 >= Config.inHandUpdateInterval;
     }
 
 

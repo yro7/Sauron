@@ -2,6 +2,7 @@ package fr.yronusa.sauron;
 
 import fr.yronusa.sauron.Config.Config;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.Container;
 import org.bukkit.entity.Player;
@@ -15,9 +16,12 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.ArrayDeque;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Tracker implements org.bukkit.event.Listener {
+
+    public static HashSet<Location> checkedInventories;
 
     public static BukkitRunnable currentPlayersCheck;
 
@@ -37,6 +41,17 @@ public class Tracker implements org.bukkit.event.Listener {
         }
 
     }
+
+    public static void initialize(){
+        if(Config.automaticInventoryUpdating) updatePlayersInventorySafe();
+
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                checkedInventories.clear();
+            }
+        }.runTaskTimer(Sauron.getInstance(), 0,20L*Config.containerUpdateInterval);
+    }
     @EventHandler
     public void trackHandledItems(PlayerItemHeldEvent e){
         Player p = e.getPlayer();
@@ -55,7 +70,6 @@ public class Tracker implements org.bukkit.event.Listener {
     public void checkItemInOpenedChest(PlayerInteractEvent e){
         Block block = e.getClickedBlock();
         if(block != null && block.getState() instanceof Container container){
-            System.out.println("udpateing");
             updateInventorySafely(container.getInventory());
         }
     }
@@ -70,7 +84,7 @@ public class Tracker implements org.bukkit.event.Listener {
         BukkitRunnable task = new BukkitRunnable() {
             @Override
             public void run() {
-                Collection<? extends Player> onlinePlayers = Bukkit.getOnlinePlayers();
+                Collection<? extends Player> onlinePlayers = Bukkit.getOnlinePlayers().stream().filter(p->!p.hasPermission("sauron.exempt")).toList();
                 ArrayDeque<Player> onlinePlayersDeque = new ArrayDeque<>(onlinePlayers);
                 new BukkitRunnable() {
                     @Override
@@ -107,10 +121,17 @@ public class Tracker implements org.bukkit.event.Listener {
      * Iterates through the inventory, checks for items with tracking IDs,
      * and updates them accordingly.
      * This method will wait every item update/startTracking to ease the database.
+     * If the inventory has previously been updated, the method will be cancelled.
+     * The list of recently updated inventories is cleared
      *
      * @param inventory The inventory to update safely.
      */
     public static void updateInventorySafely(Inventory inventory) {
+
+        if(checkedInventories.contains(inventory.getLocation())) return;
+
+        System.out.println("UPDATING A CHEST...");
+        checkedInventories.add(inventory.getLocation());
         int size = inventory.getSize();
         AtomicInteger position = new AtomicInteger(0);
         new BukkitRunnable() {

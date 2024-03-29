@@ -23,9 +23,6 @@ public class ItemUpdateDateEvent extends Event implements Cancellable {
         this.newDate = newDate;
     }
 
-
-
-
     @Override
     public @NotNull HandlerList getHandlers() {
         return HANDLERS_LIST;

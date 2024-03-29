@@ -8,6 +8,7 @@
  *
 **/
 package fr.yronusa.sauron;
+
 import fr.yronusa.sauron.Commands.Command;
 import fr.yronusa.sauron.Config.Config;
 import fr.yronusa.sauron.Database.Database;
@@ -33,6 +34,7 @@ public final class Sauron extends JavaPlugin {
 
     public static boolean database;
 
+
     @Override
     public void onEnable() {
         Sauron.instance = this;
@@ -42,8 +44,7 @@ public final class Sauron extends JavaPlugin {
         registerCommands();
         database = Initializer.initializeDatabase();
         Log.initialize();
-
-        if(Config.automaticInventoryUpdating) Tracker.updatePlayersInventorySafe();
+        Tracker.initialize();
 
 
     }

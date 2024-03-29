@@ -129,7 +129,7 @@ public class Command implements CommandExecutor {
 
         // Reload the automatic tracker
         if(Tracker.currentPlayersCheck != null) Tracker.currentPlayersCheck.cancel();
-        Tracker.updatePlayersInventorySafe();
+        Tracker.initialize();
     }
 
     public void list(Player p){

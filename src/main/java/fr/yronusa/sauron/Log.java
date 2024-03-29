@@ -60,8 +60,7 @@ public class Log {
         if(player != null){
             name = player.getName();
         }
-        logger.log(Level.SEVERE, "Duplicated item found.", new Object[]{itemID, name,
-                toString(location), base64, item.toString(), database.toString()});
+        log(itemID, player, location, base64, item, database, "Duplicated item found");
         sendMessageAdmin("§c[Sauron] Duplicated item found at " + toString(location) + " by player " + name);
     }
 
@@ -75,6 +74,21 @@ public class Log {
         logger.log(Level.SEVERE, "Blacklisted item found.",new Object[]{itemId,player, toString(location), base64});
         sendMessageAdmin("§c[Sauron] Blacklisted item found at " + toString(location) + " by player " + player.getName());
     }
+
+
+    public static void log(UUID itemID, Player player, Location location, String base64, Timestamp item, Timestamp database, String message){
+
+        String name = "N/A";
+        if(player != null){
+            name = player.getName();
+        }
+        logger.log(Level.SEVERE, "[SAURON] " + message, new Object[]{itemID, name,
+                toString(location), base64, item.toString(), database.toString()});
+    }
+
+
+
+
 
 
     private static Formatter createXMLFormatter() {

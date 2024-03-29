@@ -13,7 +13,7 @@ public class Config {
     public static List<TrackingRule> trackingRules;
 
     // Plugin settings
-    public static int updateInterval;
+    public static int inHandUpdateInterval;
     public static boolean saveItemData;
 
     public static int automaticUpdateInterval;
@@ -34,6 +34,8 @@ public class Config {
     public static int delayBetweenChecks;
     public static int delayBetweenPlayers;
     public static long delayBetweenItems;
+
+    public static long containerUpdateInterval;
 
 
     // Database credentials
@@ -64,6 +66,7 @@ public class Config {
     public static String blacklistedItemPlayer;
 
 
+
     public static boolean load(){
         try{
             config = Sauron.getInstance().getConfig();;
@@ -89,7 +92,7 @@ public class Config {
     }
 
     private static void loadSettings(){
-        updateInterval = config.getInt("settings.update-interval");
+        inHandUpdateInterval = config.getInt("settings.in-hand-update-interval");
         clearStackedItems = config.getBoolean("settings.clear-stacked-items");
         trackStackedItems = config.getBoolean("settings.track-stacked-items");
         saveItemData = config.getBoolean("settings.save-item-data");
@@ -98,7 +101,7 @@ public class Config {
         delayBetweenPlayers = config.getInt("settings.automatic-inventory-updating.delay-between-players");
         delayBetweenItems = config.getLong("settings.automatic-inventory-updating.delay-between-items");
         delayBetweenChecks = config.getInt("settings.automatic-inventory-updating.delay-between-checks");
-
+        containerUpdateInterval = config.getLong("settings.container-update-interval");
     }
 
     private static void loadMessages() {

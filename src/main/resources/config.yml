@@ -33,7 +33,8 @@ settings:
     delay-between-players: 2
     delay-between-items: 0.5
   save-item-data: false
-  update-interval: 10
+  in-hand-update-interval: 10
+  container-update-interval: 10
   track-stacked-items: false
   clear-stacked-items: true
 messages:
