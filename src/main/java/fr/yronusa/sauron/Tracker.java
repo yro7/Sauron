@@ -43,11 +43,13 @@ public class Tracker implements org.bukkit.event.Listener {
     }
 
     public static void initialize(){
+        checkedInventories = new HashSet<>();
         if(Config.automaticInventoryUpdating) updatePlayersInventorySafe();
 
         new BukkitRunnable() {
             @Override
             public void run() {
+                System.out.println("[SAURON] Clearing \"checked inventories\". Updated chest : " + checkedInventories.toString());
                 checkedInventories.clear();
             }
         }.runTaskTimer(Sauron.getInstance(), 0,20L*Config.containerUpdateInterval);
@@ -96,7 +98,7 @@ public class Tracker implements org.bukkit.event.Listener {
                         }
 
                         Player p = onlinePlayersDeque.pop();
-                        while (!p.isOnline() && p.hasPermission("sauron.exempt")) {
+                        while (!p.isOnline()) {
                             // Skip disconnected & exempts players
                             if (onlinePlayersDeque.isEmpty()) {
                                 // If there are no more players to check, cancel the task
