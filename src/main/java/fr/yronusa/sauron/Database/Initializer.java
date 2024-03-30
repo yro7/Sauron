@@ -3,8 +3,12 @@ package fr.yronusa.sauron.Database;
 import fr.yronusa.sauron.Config.Config;
 import fr.yronusa.sauron.Log;
 import fr.yronusa.sauron.Sauron;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import static fr.yronusa.sauron.Config.Config.*;
 import static fr.yronusa.sauron.Database.Database.getConnection;
@@ -81,6 +85,9 @@ public class Initializer {
             e.printStackTrace();
         }
 
+        initializeCrashesDates();
+        System.out.println("crash dates values : " + Database.crashesDates);
+
         System.out.println("[Sauron] Database ON !");
         return true;
     }
@@ -153,6 +160,34 @@ public class Initializer {
         } catch(SQLException e){
             e.printStackTrace();
         }
+    }
+
+    public static void initializeCrashesDates(){
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                String statement = "SELECT ROLLBACK_TIME, CRASH_TIME FROM CRASHES";
+                List<ImmutablePair<Timestamp,Timestamp>> res = new ArrayList<>();
+                try {
+                    Connection conn = getConnection();
+                    try (PreparedStatement preparedStatement = conn.prepareStatement(statement)) {
+                        try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                            while (resultSet.next()) {
+                                Timestamp rollbackTime = resultSet.getTimestamp("ROLLBACK_TIME");
+                                Timestamp crashTime = resultSet.getTimestamp("CRASH_TIME");
+                                // Process the pair (rollbackTime, crashTime)
+                                res.add(new ImmutablePair<>(rollbackTime,crashTime));
+                            }
+                        }
+                    };
+
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
+
+                Database.crashesDates = res;
+            }
+        }.runTaskAsynchronously(Sauron.getInstance());
     }
 
 

@@ -8,10 +8,8 @@ import fr.yronusa.sauron.Sauron;
 import fr.yronusa.sauron.TrackedItem;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.Bukkit;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.sql.*;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -62,7 +60,7 @@ public class Database {
     }
 
 
-    public static void add(TrackedItem trackedItem) {
+    public static void addTrackedItem(TrackedItem trackedItem) {
         String itemBase64 = trackedItem.getBase64();
 
         String statement = "INSERT INTO TRACKED_ITEMS (UUID, ITEMBASE64, LAST_UPDATE, LAST_INVENTORIES, IS_BLACKLISTED) VALUES (?, ?, ?, ?, ?)";
@@ -167,7 +165,7 @@ public class Database {
 
                     ResultSet resultSet = verifPresence.executeQuery();
                     if(!resultSet.next()){
-                        Database.add(item);
+                        Database.addTrackedItem(item);
                         return;
                     }
 
@@ -254,33 +252,37 @@ public class Database {
         return res;
     }
 
-    public static void initializeCrashesDates(){
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                String statement = "SELECT ROLLBACK_TIME, CRASH_TIME FROM CRASHES";
-                List<ImmutablePair<Timestamp,Timestamp>> res = new ArrayList<>();
-                try {
-                    Connection conn = getConnection();
-                    try (PreparedStatement preparedStatement = conn.prepareStatement(statement)) {
-                        try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                            while (resultSet.next()) {
-                                Timestamp rollbackTime = resultSet.getTimestamp("ROLLBACK_TIME");
-                                Timestamp crashTime = resultSet.getTimestamp("CRASH_TIME");
-                                // Process the pair (rollbackTime, crashTime)
-                                res.add(new ImmutablePair<>(rollbackTime,crashTime));
-                            }
-                        }
-                    };
+    public static Boolean wasUpdatedBeforeCrash(TrackedItem item){
+        Timestamp itemTimestamp = item.getLastUpdateItem();
+        for(ImmutablePair<Timestamp,Timestamp> interval : Database.crashesDates){
+            if(itemTimestamp.after(interval.left) && itemTimestamp.before(interval.right)) return true;
+        }
 
-                } catch (SQLException ex) {
-                    ex.printStackTrace();
-                }
-
-                Database.crashesDates = res;
-            }
-        }.runTaskAsynchronously(Sauron.getInstance());
+        return false;
     }
 
+    public static void addCrashDate(Timestamp rollbackDate, Timestamp crashDate){
+
+        Bukkit.getScheduler().runTaskAsynchronously(Sauron.getInstance(), new Runnable() {
+            @Override
+            public void run() {
+                String sql = "INSERT INTO CRASHES (ROLLBACK_TIME, CRASH_TIME) VALUES (?, ?)";
+                try{
+                    PreparedStatement statement = connection.prepareStatement(sql);
+                    statement.setString(1, String.valueOf(rollbackDate));
+                    statement.setString(2, String.valueOf(crashDate));
+                    int rowsInserted = statement.executeUpdate();
+                    if (rowsInserted > 0) {
+                        System.out.println("[SAURON] Successfully whitelist the interval between " + rollbackDate.toString() + " and " + crashDate.toString());
+                    }
+                } catch (SQLException ex) {
+                    throw new RuntimeException(ex);
+                }
+            }
+        });
+
+
+    }
 }
+
 

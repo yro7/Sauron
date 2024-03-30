@@ -16,6 +16,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 
+import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -54,6 +55,9 @@ public class Command implements CommandExecutor {
                 break;
             case "refund":
                 refund(p);
+                break;
+            case "crash":
+                crash(p,strings);
                 break;
             default:
                 help(p);
@@ -115,7 +119,7 @@ public class Command implements CommandExecutor {
             UUID oldID = trackedItem.getOriginalID();
             Database.blacklist(trackedItem, oldID);
             trackedItem.resetUUID();
-            Database.add(trackedItem);
+            Database.addTrackedItem(trackedItem);
 
         }
     }
@@ -130,6 +134,46 @@ public class Command implements CommandExecutor {
         // Reload the automatic tracker
         if(Tracker.currentPlayersCheck != null) Tracker.currentPlayersCheck.cancel();
         Tracker.initialize();
+    }
+
+    public void crash(Player p, String[] args) {
+        if(args.length != 2){
+            p.sendMessage("§7* §cUsage : /sauron crash <Date of rollback> <Date of server's crash> ");
+            p.sendMessage("§7* §cDate format : YYYY-MM-DD hh:mm:ss.0");
+            p.sendMessage("§7* §7Example: 2024-03-30 01:58:13.0");
+            p.sendMessage("§7The date of rollback is the date where the server has been sent to,");
+            p.sendMessage("§7The date of server crash is the time where the server crashed");
+            p.sendMessage("§7Any item updated in that interval will skip the duplication check.");
+            return;
+        }
+
+        else{
+
+            Timestamp rollbackDate;
+            Timestamp crashDate;
+            try{
+                rollbackDate = Timestamp.valueOf(args[0]);
+            }catch(Exception e){
+                p.sendMessage("§7* §cError: Timestamp format error on the first timestamp.");
+                p.sendMessage("§7* §cDate format : YYYY-MM-DD hh:mm:ss.0");
+                p.sendMessage("§7* §7Example: 2024-03-30 01:58:13.0");
+                return;
+            }
+
+            try{
+                crashDate = Timestamp.valueOf(args[1]);
+            }catch(Exception e){
+                p.sendMessage("§7* §cError: Timestamp format error on the second timestamp.");
+                p.sendMessage("§7* §cDate format : YYYY-MM-DD hh:mm:ss.0");
+                p.sendMessage("§7* §7Example: 2024-03-30 01:58:13.0");
+                return;
+            }
+
+            Database.addCrashDate(rollbackDate, crashDate);
+
+
+
+        }
     }
 
     public void list(Player p){

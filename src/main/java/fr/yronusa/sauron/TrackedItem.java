@@ -87,7 +87,7 @@ public class TrackedItem {
 
             // Add the item to the database if enabled
             if (Sauron.database) {
-                Database.add(trackedItem);
+                Database.addTrackedItem(trackedItem);
             }
 
             // Trigger event for item tracking start
@@ -206,12 +206,18 @@ public class TrackedItem {
                 return;
             }
 
-            if (resPair.getRight()) {
+            // If the item was updated during a crash, the anti-dupe will be triggered. In that case, we just
+            // bypass the dupe check and allow the item to be updated. If the item was in fact duplicated, one of the
+            // versions will be cleared at the next look-up.
+            boolean wasUpdatedBeforeCrash = Database.wasUpdatedBeforeCrash(this);
+
+            if (resPair.getRight() && !wasUpdatedBeforeCrash) {
                 // Trigger event for duplicated item detection
                 DupeDetectedEvent dupeDetectEvent = new DupeDetectedEvent(this, this.getPlayer());
                 Bukkit.getScheduler().runTask(Sauron.getInstance(), () -> Bukkit.getPluginManager().callEvent(dupeDetectEvent));
                 return;
             }
+
 
             // If the item is neither blacklisted nor duplicated, update it
             Timestamp newDate = Sauron.getActualDate();
