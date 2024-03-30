@@ -44,9 +44,6 @@ public class TrackedItem {
     }
 
     public static boolean shouldBeTrack(ItemMutable i) {
-        System.out.println("should be track ?");
-        System.out.println("enable illegla item lookup?" + Config.enableIllegalItemsLookup);
-        System.out.println("enable item tracking ?" + Config.enableItemsTracking);
         if(!Config.enableItemsTracking) return false;
         ItemStack item = i.getItem();
         if(item == null) return false;

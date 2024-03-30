@@ -38,7 +38,6 @@ public class Tracker implements org.bukkit.event.Listener {
             return;
         }
 
-        System.out.println("res : " + TrackedItem.shouldBeTrack(i));
         if(TrackedItem.shouldBeTrack(i)){
             TrackedItem.startTracking(i);
         }

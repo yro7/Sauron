@@ -141,7 +141,6 @@ public class Command implements CommandExecutor {
     }
 
     public void crash(Player p, String[] args) {
-        System.out.println(Arrays.toString(args));
         if(args.length != 5){
             p.sendMessage("§7* §cUsage : /sauron crash <Date of rollback> <Date of server's crash> ");
             p.sendMessage("§7* §cDate format : YYYY-MM-DD hh:mm:ss.0");

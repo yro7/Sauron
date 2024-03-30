@@ -76,6 +76,7 @@ public class Initializer {
             }
         } catch (SQLException e) {
             System.out.println("[Sauron] Database update is OFF, but items will still be tracked according to TrackingRules.");
+            e.printStackTrace();
             return false;
         }
 
@@ -123,7 +124,7 @@ public class Initializer {
     private static void createTableCrashes() throws SQLException {
 
         String createTableQuery = "CREATE TABLE " + "CRASHES" + " (" +
-                "ROLLBACK_TIME TIMESTAMP NOT NULL" +
+                "ROLLBACK_TIME TIMESTAMP NOT NULL," +
                 "CRASH_TIME TIMESTAMP NOT NULL" +
                 ")";
         try (PreparedStatement preparedStatement = getConnection().prepareStatement(createTableQuery)) {

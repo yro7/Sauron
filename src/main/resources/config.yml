@@ -74,5 +74,7 @@ messages:
       - ""
       - "§7* §c/sauron refund: §7Blacklist the current item and gives you a clean version."
       - ""
+      - "§7* §c/sauron crash: §7Shows the help of crashes handling command."
+      - ""
       - "§7* §c/sauron stop: §7Stop or start tracked item's update for player. Can be used for debugging or to custom items."
       - ""

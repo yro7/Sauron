@@ -91,6 +91,7 @@ public class Database {
                         System.out.println("[SAURON] An error has occured while inserting a new item in database.");
                     }
                 } catch (SQLException e) {
+                    System.out.println("[Sauron] error while inserting a new item in dtb.");
                 }
 
 
