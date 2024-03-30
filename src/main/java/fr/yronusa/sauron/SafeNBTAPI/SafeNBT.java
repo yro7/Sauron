@@ -38,10 +38,17 @@ public class SafeNBT {
     private static Class<?> craftItemstackClass;
     static Class<?> mojangsonParserClass;
 
+    // MODIFIED VERSION
+
+    public static Method m;
+    public static Method getCompound;
+
+
     private final Object tagCompund;
 
     static{
         try{
+
             if(VersionManager.greaterOrEqual(1, 17)){
                 tagCompoundClass = Class.forName("net.minecraft.nbt.NBTTagCompound");
                 nbtBaseClass = Class.forName("net.minecraft.nbt.NBTBase");
@@ -55,17 +62,20 @@ public class SafeNBT {
                 mojangsonParserClass = Class.forName(version + ".MojangsonParser");
             }
             craftItemstackClass = Class.forName(cbVersion + ".inventory.CraftItemStack");
+
+            m = craftItemstackClass.getMethod("asNMSCopy", ItemStack.class);
+            getCompound = nmsItemstackClass.getMethod("getTag");
         }
         catch(Exception ex){
             ex.printStackTrace();
         }
     }
 
-    public SafeNBT(){
+    public SafeNBT() {
         this(null);
     }
 
-    public SafeNBT(Object tagCompound){
+    public SafeNBT(Object tagCompound) {
         Object toSet = tagCompound;
         if(tagCompound == null){
             try{
@@ -102,7 +112,7 @@ public class SafeNBT {
     }
 
     @NotNull
-    public SafeNBT getCompound(String key){
+    public SafeNBT getCompound(String key) {
         SafeNBT nbt = getCompoundNullable(key);
         return nbt == null ? null : new SafeNBT();
     }
@@ -126,7 +136,7 @@ public class SafeNBT {
         return r == null ? null : new SafeNBTList(r);
     }
 
-    public void setObject(String key, Object o){
+    public void setObject(String key, Object o) throws NoSuchMethodException {
         if(o instanceof String){setString(key, (String) o);}
         else if(o instanceof Integer){setInt(key, (Integer) o);}
         else if(o instanceof Double){setDouble(key, (Double) o);}
@@ -370,12 +380,10 @@ public class SafeNBT {
 
     public static SafeNBT get(ItemStack item){
         try{
-            Method m = craftItemstackClass.getMethod("asNMSCopy", ItemStack.class);
             m.setAccessible(true);
             Object nmsStack = m.invoke(null, item);
             m.setAccessible(false);
 
-            Method getCompound = nmsItemstackClass.getMethod("getTag");
             getCompound.setAccessible(true);
             Object nbtCompound = getCompound.invoke(nmsStack);
             getCompound.setAccessible(false);
