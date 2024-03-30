@@ -6,9 +6,12 @@ import fr.yronusa.sauron.InventoryLocation;
 import fr.yronusa.sauron.Log;
 import fr.yronusa.sauron.Sauron;
 import fr.yronusa.sauron.TrackedItem;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.Bukkit;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -18,6 +21,8 @@ import static fr.yronusa.sauron.Config.Config.*;
 public class Database {
 
     public static Connection connection;
+
+    public static List<ImmutablePair<Timestamp,Timestamp>> crashesDates;
 
     public enum TYPE {
         mysql,
@@ -247,6 +252,34 @@ public class Database {
             e.printStackTrace();
         }
         return res;
+    }
+
+    public static void initializeCrashesDates(){
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                String statement = "SELECT ROLLBACK_TIME, CRASH_TIME FROM CRASHES";
+                List<ImmutablePair<Timestamp,Timestamp>> res = new ArrayList<>();
+                try {
+                    Connection conn = getConnection();
+                    try (PreparedStatement preparedStatement = conn.prepareStatement(statement)) {
+                        try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                            while (resultSet.next()) {
+                                Timestamp rollbackTime = resultSet.getTimestamp("ROLLBACK_TIME");
+                                Timestamp crashTime = resultSet.getTimestamp("CRASH_TIME");
+                                // Process the pair (rollbackTime, crashTime)
+                                res.add(new ImmutablePair<>(rollbackTime,crashTime));
+                            }
+                        }
+                    };
+
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
+
+                Database.crashesDates = res;
+            }
+        }.runTaskAsynchronously(Sauron.getInstance());
     }
 
 }

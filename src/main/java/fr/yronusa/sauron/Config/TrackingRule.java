@@ -1,6 +1,6 @@
 package fr.yronusa.sauron.Config;
 
-import com.jojodmo.safeNBT.api.SafeNBT;
+import fr.yronusa.sauron.SafeNBTAPI.SafeNBT;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemFlag;
@@ -133,7 +133,7 @@ public class TrackingRule implements Predicate<ItemStack> {
 
 
     public static Object getKey(SafeNBT nbt, String key) {
-        Object res;
+        Object res = null;
         try {
             res = nbt.getString(key);
         } catch (Exception e1) {
@@ -141,13 +141,13 @@ public class TrackingRule implements Predicate<ItemStack> {
                 res = nbt.getInt(key);
             } catch (Exception e2) {
                 try {
-                    res = nbt.getDouble(key);
+                  //  res = nbt.getDouble(key);
                 } catch (Exception e3) {
                     try {
-                        res = nbt.getFloat(key);
+                     //   res = nbt.getFloat(key);
                     } catch (Exception e4) {
                         try {
-                            res = nbt.getBoolean(key);
+                       //     res = nbt.getBoolean(key);
                         } catch (Exception e5) {
                             throw new RuntimeException("Failed to retrieve value for key: " + key, e5);
                         }

@@ -1,6 +1,6 @@
 package fr.yronusa.sauron;
 
-import com.jojodmo.safeNBT.api.SafeNBT;
+import fr.yronusa.sauron.SafeNBTAPI.SafeNBT;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;

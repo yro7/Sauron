@@ -33,6 +33,12 @@ public class Initializer {
         return sqlServerConnection;
     }
 
+    /**
+     * Proceeds all database-related verification. If a component of the database ie missing, creates it.
+     * Connects to the server / then the database if possible.
+     * @return true if the database was successfully enabled and can be used in production, false otherwise.
+     */
+
     public static boolean initializeDatabase() {
         try  {
 
@@ -51,13 +57,18 @@ public class Initializer {
             }
 
             // Once we have checked that the connection to the SQL server is possible and that the dtb exist, we
-            // setup the connection to that database.
+            // set up the connection to that database.
 
             Database.connect();
 
-            if(!tableExists()){
+            if(!tableTrackedItemsExists()){
                 System.out.println("[Sauron] Table \"TRACKED_ITEMS\" do not exist, creating it...");
-                createTable();
+                createTableTrackedItem();
+            }
+
+            if(!tableCrashesExists()){
+                System.out.println("[Sauron] Table \"CRASHES\" do not exist, creating it..");
+                createTableCrashes();
             }
         } catch (SQLException e) {
             System.out.println("[Sauron] Database update is OFF, but items will still be tracked according to TrackingRules.");
@@ -83,7 +94,7 @@ public class Initializer {
         }
     }
 
-    private static void createTable() throws SQLException {
+    private static void createTableTrackedItem() throws SQLException {
 
         String createTableQuery = "CREATE TABLE " + "TRACKED_ITEMS" + " (" +
                 "UUID varchar(36) NOT NULL PRIMARY KEY," +
@@ -94,6 +105,31 @@ public class Initializer {
                 ")";
         try (PreparedStatement preparedStatement = getConnection().prepareStatement(createTableQuery)) {
             preparedStatement.executeUpdate();
+        }
+    }
+
+    private static boolean tableTrackedItemsExists() throws SQLException {
+        DatabaseMetaData metadata = getConnection().getMetaData();
+        try (ResultSet resultSet = metadata.getTables(null, null, "TRACKED_ITEMS", null)) {
+            return resultSet.next();
+        }
+    }
+
+    private static void createTableCrashes() throws SQLException {
+
+        String createTableQuery = "CREATE TABLE " + "CRASHES" + " (" +
+                "ROLLBACK_TIME TIMESTAMP NOT NULL" +
+                "CRASH_TIME TIMESTAMP NOT NULL" +
+                ")";
+        try (PreparedStatement preparedStatement = getConnection().prepareStatement(createTableQuery)) {
+            preparedStatement.executeUpdate();
+        }
+    }
+
+    private static boolean tableCrashesExists() throws SQLException {
+        DatabaseMetaData metadata = getConnection().getMetaData();
+        try (ResultSet resultSet = metadata.getTables(null, null, "CRASHES", null)) {
+            return resultSet.next();
         }
     }
     private static boolean databaseExists() throws SQLException {
@@ -108,12 +144,6 @@ public class Initializer {
         }
     }
 
-    private static boolean tableExists() throws SQLException {
-        DatabaseMetaData metadata = getConnection().getMetaData();
-        try (ResultSet resultSet = metadata.getTables(null, null, "TRACKED_ITEMS", null)) {
-            return resultSet.next();
-        }
-    }
 
     private static void createDatabase() throws SQLException {
         String query = "CREATE DATABASE " + databaseName;
