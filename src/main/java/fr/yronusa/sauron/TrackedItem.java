@@ -9,20 +9,20 @@ import fr.yronusa.sauron.Event.ItemStartTrackingEvent;
 import fr.yronusa.sauron.Event.StackedItemDetectedEvent;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.util.io.BukkitObjectOutputStream;
-import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
 
-import java.io.ByteArrayOutputStream;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 
+/**
+ * The principal object of the plugin.
+ * Represents the items that have a sauron_uuid nbt, which are the ones tracked by the plugin.
+ */
 public class TrackedItem {
 
 
@@ -30,6 +30,10 @@ public class TrackedItem {
     public UUID originalID;
     public Timestamp lastUpdate; // Last update of the item at format YYYY.MM.DD.hh.mm
 
+    /** Used to get the associated TrackedItem from an {@link ItemMutable} directly.
+     * The ItemMutable is necessary to be able to update data on the item more easily.
+     * @param item the ItemMutable which will define the TrackedItem.
+     */
     // Used to get the associated TrackedItem from an ItemMutable directly.
     // The ItemMutable is necessary to be able to update data on the item more easily.
     public TrackedItem(ItemMutable item) {
@@ -40,6 +44,10 @@ public class TrackedItem {
     }
 
     public static boolean shouldBeTrack(ItemMutable i) {
+        System.out.println("should be track ?");
+        System.out.println("enable illegla item lookup?" + Config.enableIllegalItemsLookup);
+        System.out.println("enable item tracking ?" + Config.enableItemsTracking);
+        if(!Config.enableItemsTracking) return false;
         ItemStack item = i.getItem();
         if(item == null) return false;
         if(!Config.trackStackedItems && item.getAmount() != 1) return false;
@@ -49,6 +57,14 @@ public class TrackedItem {
         }
 
         return false;
+    }
+
+    public String getBase64(){
+        return this.getItemMutable().getBase64();
+    }
+
+    public Timestamp getLastUpdateItem(){
+        return this.getItemMutable().getLastUpdate();
     }
 
     public UUID getOriginalID() {
@@ -75,7 +91,7 @@ public class TrackedItem {
     public static TrackedItem startTracking(ItemMutable item) {
         // Check if the item already has a tracking ID
         if (item.hasTrackingID()) {
-            // If yes, create a TrackedItem and update it
+            // If yes, create a TrackedItem object to update it
             TrackedItem trackedItem = new TrackedItem(item);
             trackedItem.update();
             return trackedItem;
@@ -98,7 +114,6 @@ public class TrackedItem {
         }
     }
 
-
     public static void update(Inventory inv){
         int position = 0;
         for(ItemStack i : inv.getContents()) {
@@ -108,51 +123,33 @@ public class TrackedItem {
                 (new TrackedItem(item)).update();
                 return;
             }
-            if(shouldBeTrack(item)){
+            if( shouldBeTrack(item)){
                 startTracking(item);
             }
         }
     }
 
     /**
-     *
      * Tries to get the player that triggered the process which led to the creation of the TrackedItem.
      * In some cases, that player won't exist, for example if the plugin scanned a container that no player was looking onto.
+     * a {@link TrackedItem} object doesn't to have a player to works as expected, but it is useful for logging purposes.
      *
-     * @return the {@link Player} associated with the Tracked Item if found, null else.
+     * @return the {@link Player} associated with the Tracked Item if found, null otherwise.
      */
     public Player getPlayer(){
-        Inventory inventory = this.getItemMutable().getInventory();;
-        if(inventory.getHolder() instanceof Player p){
-            return p;
-        }
-
-        for(HumanEntity humanEntity : inventory.getViewers()){
-            if(humanEntity instanceof Player p) return p;
-        }
-
-        return null;
+        return this.getItemMutable().getPlayer();
     }
 
-
-    public String getBase64(){
-        String base = itemStackArrayToBase64(new ItemStack[]{this.getItem()});
-        return base.replaceAll("\\n", "");
-    }
-
-    public Timestamp getLastUpdateItem(){
-        return this.getItemMutable().getLastUpdate();
-    }
 
     /**
      * Updates the item with optional force update flag.
+     * Performs all necessaries check : is the item duplicated ? Is it blacklisted ?
      *
      * @param forceUpdate A boolean flag indicating whether to force the update regardless of other conditions.
      *                    If true, the update will be executed even if the item doesn't meet update criteria.
      *                    If false, the update will be skipped unless {@link #shouldUpdate()} returns true.
      */
     public void update(boolean forceUpdate) {
-
         // Check if the update should be skipped based on conditions
         if (!forceUpdate && !shouldUpdate()) {
             return;
@@ -197,7 +194,6 @@ public class TrackedItem {
             }
         });
 
-        // Process the combined results
         combinedResult.thenAccept(resPair -> {
             if (resPair.getLeft()) {
                 // Trigger event for blacklisted item detection
@@ -206,12 +202,12 @@ public class TrackedItem {
                 return;
             }
 
-            // If the item was updated during a crash, the anti-dupe will be triggered. In that case, we just
-            // bypass the dupe check and allow the item to be updated. If the item was in fact duplicated, one of the
-            // versions will be cleared at the next look-up.
-            boolean wasUpdatedBeforeCrash = Database.wasUpdatedBeforeCrash(this);
+            // If a tracked item was updated during a crash, the anti-dupe will be triggered after the reboot.
+            // In that case, we just bypass the dupe check and allow the item to be updated.
 
-            if (resPair.getRight() && !wasUpdatedBeforeCrash) {
+            // If the item was in fact really duplicated, the duplicated one will be cleared at the next look-up.
+
+            if (resPair.getRight() && !Database.wasUpdatedBeforeCrash(this)) {
                 // Trigger event for duplicated item detection
                 DupeDetectedEvent dupeDetectEvent = new DupeDetectedEvent(this, this.getPlayer());
                 Bukkit.getScheduler().runTask(Sauron.getInstance(), () -> Bukkit.getPluginManager().callEvent(dupeDetectEvent));
@@ -231,6 +227,11 @@ public class TrackedItem {
         update(false);
     }
 
+    /**
+     * Is the timestamp on the item old enough to allow the item to be updated ?
+     * Can be bypassed using the "true" flag option in {@link TrackedItem#update(boolean)}}.
+     * @return true if yes, false otherwise
+     */
     private boolean shouldUpdate() {
         Timestamp itemTimestamp = this.getLastUpdateItem();
         Timestamp actualTime = Sauron.getActualDate();
@@ -238,21 +239,6 @@ public class TrackedItem {
         return difference / 1000 >= Config.inHandUpdateInterval;
     }
 
-
-    public static String itemStackArrayToBase64(ItemStack[] items) throws IllegalStateException {
-        try {
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            BukkitObjectOutputStream dataOutput = new BukkitObjectOutputStream(outputStream);
-            dataOutput.writeInt(items.length);
-            for (int i = 0; i < items.length; i++) {
-                dataOutput.writeObject(items[i]);
-            }
-            dataOutput.close();
-            return Base64Coder.encodeLines(outputStream.toByteArray());
-        } catch (Exception e) {
-            throw new IllegalStateException("Unable to save item stacks.", e);
-        }
-    }
 
     public void quarantine(){
         this.getItemMutable().delete();

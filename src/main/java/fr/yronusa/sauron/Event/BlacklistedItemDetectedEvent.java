@@ -10,6 +10,13 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
+
+/**
+ * Is called when a blacklisted item is detected.
+ * Blacklisted items are the ones that have the "BLACKLISTED" tinyint equal to 1 in the database.
+ * Generally, the blacklisted items are the ones that have been /sauron refund by an admin, or that have been
+ * blacklisted using the API (for example: consumables items after being consumed).
+ */
 public class BlacklistedItemDetectedEvent extends Event implements Cancellable {
 
     private final TrackedItem item;

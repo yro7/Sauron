@@ -12,6 +12,9 @@ import java.util.List;
 import java.util.UUID;
 import java.util.logging.*;
 
+/**
+ * The logger of the plugin.
+ */
 public class Log {
 
     private static Logger logger;
@@ -75,6 +78,12 @@ public class Log {
         sendMessageAdmin("§c[Sauron] Blacklisted item found at " + toString(location) + " by player " + player.getName());
     }
 
+    public static void illegalItemFound(Player player, Location location, String base64) {
+        logger.log(Level.SEVERE, "Illegal item found",new Object[]{"null",player, toString(location), base64});
+        sendMessageAdmin("§c[Sauron] Illegal item found at " + toString(location) + " by player " + player.getName());
+
+    }
+
 
     public static void log(UUID itemID, Player player, Location location, String base64, Timestamp item, Timestamp database, String message){
 
@@ -122,5 +131,6 @@ public class Log {
     public static String toString(Location location){
       return location.getWorld().getName() + " at " + location.getBlockX() + "," + location.getBlockY() + "," + location.getBlockZ();
     }
+
 }
 

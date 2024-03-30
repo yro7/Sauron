@@ -32,11 +32,11 @@ public class TrackingRule implements Predicate<ItemStack> {
         this.isUnbreakable = isUnbreakable;
     }
 
-    public static List<TrackingRule> getTrackingRulesFromConfig(){
-        configSection = Config.config.getConfigurationSection("rules");
+    public static List<TrackingRule> getTrackingRulesFromConfig(String path) {
+        configSection = Config.config.getConfigurationSection("rules." + path);
         List<TrackingRule> res = new ArrayList<>();
         Set<String> rulesPath = configSection.getKeys(false);
-        for(String s : rulesPath){
+        for (String s : rulesPath) {
             res.add(new TrackingRule(s));
         }
         return res;

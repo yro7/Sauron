@@ -48,7 +48,7 @@ public class Initializer {
 
             if(!canConnectToServer()){
                 System.out.println("[Sauron] Database connexion failed. Please, check credentials in config file.");
-                System.out.println("[Sauron] Database update is OFF, but items will still be tracked according to TrackingRules.");
+                System.out.println("[Sauron] Database update is OFF, but items will still be tracked according to TrackingRules, and illegals items will still be cleared.");
                 return false;
             }
 
@@ -86,8 +86,6 @@ public class Initializer {
         }
 
         initializeCrashesDates();
-        System.out.println("crash dates values : " + Database.crashesDates);
-
         System.out.println("[Sauron] Database ON !");
         return true;
     }
@@ -163,6 +161,7 @@ public class Initializer {
     }
 
     public static void initializeCrashesDates(){
+        Database.crashesDates = new ArrayList<>();
         new BukkitRunnable() {
             @Override
             public void run() {

@@ -12,7 +12,12 @@ public class Config {
 
     public static List<TrackingRule> trackingRules;
 
+    public static List<TrackingRule> illegalItemRules;
+
     // Plugin settings
+
+    public static boolean enableIllegalItemsLookup;
+    public static boolean enableItemsTracking;
     public static int inHandUpdateInterval;
     public static boolean saveItemData;
 
@@ -53,6 +58,7 @@ public class Config {
     public static String notTracked;
     public static String dupeFoundPlayer;
     public static String stackedItemPlayer;
+    public static String illegalItemPlayer;
     public static List<String> helpCommand;
     public static String reloadSuccessful;
 
@@ -73,7 +79,10 @@ public class Config {
             loadMessages();
             loadDatabase();
             loadSettings();
-            trackingRules = TrackingRule.getTrackingRulesFromConfig();
+            trackingRules = TrackingRule.getTrackingRulesFromConfig("items-to-track");
+            illegalItemRules = TrackingRule.getTrackingRulesFromConfig("illegal-items");
+            enableIllegalItemsLookup = !illegalItemRules.isEmpty();
+            enableItemsTracking = !trackingRules.isEmpty();
 
             return true;
         } catch(Exception e){
@@ -107,8 +116,9 @@ public class Config {
     private static void loadMessages() {
         notTracked = get("messages.not-tracked");
         dupeFoundPlayer = get("messages.dupe-found-player");
-        stackedItemPlayer = get("messages.stacked-item-player");
+        stackedItemPlayer = get("messages.stacked-item-found-player");
         blacklistedItemPlayer = get("messages.blacklisted-item-found-player");
+        illegalItemPlayer = get("messages.illegal-item-found-player");
         helpCommand = config.getStringList("messages.commands.help");
         reloadSuccessful = get("messages.commands.reload");
         insufficientPermission = get("messages.commands.insufficient-permission");

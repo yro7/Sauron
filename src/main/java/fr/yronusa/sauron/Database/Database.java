@@ -10,6 +10,7 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bukkit.Bukkit;
 
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -20,7 +21,7 @@ public class Database {
 
     public static Connection connection;
 
-    public static List<ImmutablePair<Timestamp,Timestamp>> crashesDates;
+    public static List<ImmutablePair<Timestamp,Timestamp>> crashesDates = new ArrayList<>();
 
     public enum TYPE {
         mysql,
@@ -61,13 +62,15 @@ public class Database {
 
 
     public static void addTrackedItem(TrackedItem trackedItem) {
+
+        // TO IMPROVE:
+        // CHeck if database contains item before adding it.
         String itemBase64 = trackedItem.getBase64();
 
         String statement = "INSERT INTO TRACKED_ITEMS (UUID, ITEMBASE64, LAST_UPDATE, LAST_INVENTORIES, IS_BLACKLISTED) VALUES (?, ?, ?, ?, ?)";
         Bukkit.getScheduler().runTaskAsynchronously(Sauron.getInstance(), new Runnable() {
             @Override
             public void run() {
-
                 try {
                     Timestamp time = trackedItem.getLastUpdateItem();
                     Connection conn = getConnection();
@@ -88,7 +91,6 @@ public class Database {
                         System.out.println("[SAURON] An error has occured while inserting a new item in database.");
                     }
                 } catch (SQLException e) {
-                    throw new RuntimeException(e);
                 }
 
 
@@ -252,7 +254,17 @@ public class Database {
         return res;
     }
 
+    /**
+     * Checks if the timestamp on the item corresponds to a period of a rollback/crash.
+     * When a server rollbacks, the timestamps on items are rollbacked too but not in the database, which ultimately leads to a
+     * {@link fr.yronusa.sauron.Event.DupeDetectedEvent} after the lookup. This method allows to avoid that, using the /sauron crash command.
+     *
+     * @param item the tracked item to check.
+     * @return true if the timestamp of the item belongs to a "crash" interval, false otherwise.
+     */
+
     public static Boolean wasUpdatedBeforeCrash(TrackedItem item){
+        System.out.println("checking if the item has been updated before a crash : ");
         Timestamp itemTimestamp = item.getLastUpdateItem();
         for(ImmutablePair<Timestamp,Timestamp> interval : Database.crashesDates){
             if(itemTimestamp.after(interval.left) && itemTimestamp.before(interval.right)) return true;
@@ -273,7 +285,7 @@ public class Database {
                     statement.setString(2, String.valueOf(crashDate));
                     int rowsInserted = statement.executeUpdate();
                     if (rowsInserted > 0) {
-                        System.out.println("[SAURON] Successfully whitelist the interval between " + rollbackDate.toString() + " and " + crashDate.toString());
+                        System.out.println("[Sauron] Successfully whitelisted the interval between " + rollbackDate.toString() + " and " + crashDate.toString());
                     }
                 } catch (SQLException ex) {
                     throw new RuntimeException(ex);

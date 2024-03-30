@@ -19,6 +19,9 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * The class that contains all listeners that are used to perform look up on the server, to find items to track/update.
+ */
 public class Tracker implements org.bukkit.event.Listener {
 
     public static HashSet<Location> checkedInventories;
@@ -29,16 +32,18 @@ public class Tracker implements org.bukkit.event.Listener {
         if(item==null){
             return;
         }
-
         ItemMutable i = new ItemMutable(item, inventory, slot);
         if(i.hasTrackingID()){
             new TrackedItem(i).update();
             return;
         }
 
+        System.out.println("res : " + TrackedItem.shouldBeTrack(i));
         if(TrackedItem.shouldBeTrack(i)){
             TrackedItem.startTracking(i);
         }
+
+
 
     }
 
@@ -49,7 +54,6 @@ public class Tracker implements org.bukkit.event.Listener {
         new BukkitRunnable() {
             @Override
             public void run() {
-                System.out.println("[SAURON] Clearing \"checked inventories\". Updated chest : " + checkedInventories.toString());
                 checkedInventories.clear();
             }
         }.runTaskTimer(Sauron.getInstance(), 0,20L*Config.containerUpdateInterval);
@@ -68,6 +72,13 @@ public class Tracker implements org.bukkit.event.Listener {
         TrackedItem.update(e.getInitiator());
     }
 
+    /**
+     * Allows to check the containers open by players.
+     * It is a better use than {@link org.bukkit.event.inventory.InventoryOpenEvent} which causes incompabilities with
+     * plugins (such as auctions plugin, crates plugin or inventory/ec viewing plugins).
+     *
+     * @param e The {@link PlayerInteractEvent} that triggered the method
+     */
     @EventHandler
     public void checkItemInOpenedChest(PlayerInteractEvent e){
         Block block = e.getClickedBlock();
@@ -129,10 +140,7 @@ public class Tracker implements org.bukkit.event.Listener {
      * @param inventory The inventory to update safely.
      */
     public static void updateInventorySafely(Inventory inventory) {
-
         if(checkedInventories.contains(inventory.getLocation())) return;
-
-        System.out.println("UPDATING A CHEST...");
         checkedInventories.add(inventory.getLocation());
         int size = inventory.getSize();
         AtomicInteger position = new AtomicInteger(0);
@@ -145,9 +153,9 @@ public class Tracker implements org.bukkit.event.Listener {
                     this.cancel();
                     return;
                 }
-
-                // Find the next item with a tracking ID
-                while (counter < size && !ItemMutable.hasTrackingID(inventory.getItem(counter))) {
+                // Find the next item with a tracking ID (and perform check for illegals item, through ItemMutable's constructor).
+                ItemMutable itemMutable = new ItemMutable(inventory.getItem(counter), inventory, counter);
+                while (counter < size && !itemMutable.hasTrackingID()) {
                     counter++;
                 }
 

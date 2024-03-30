@@ -5,6 +5,10 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
 
+
+/**
+ * A non yet implemented class that will allow to serialize inventories' location data, to save that data in the database.
+ */
 public class InventoryLocation {
 
     Player player;

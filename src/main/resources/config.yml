@@ -6,26 +6,33 @@ database:
   user: root
   password: toor
 rules:
-  super-weapons:
-    contains:
-      - custom
-      - OP
-    materials:
-      - DIAMOND_SWORD
-      - DIAMOND_AXE
-    flags:
-      - HIDE_UNBREAKABLE
-    unbreakable: true
-    has_nbt:
-      - yronusaTest
-  capybara-armors:
-    contains:
-      - Capybara
-    materials:
-      - DIAMOND_HELMET
-      - DIAMOND_LEGGINGS
-    has_nbt:
-      - capybaraArmor
+  items-to-track:
+    super-weapons:
+      contains:
+        - custom
+        - OP
+      materials:
+        - DIAMOND_SWORD
+        - DIAMOND_AXE
+      flags:
+        - HIDE_UNBREAKABLE
+      unbreakable: true
+      has_nbt:
+        - yronusaTest
+    capybara-armors:
+      contains:
+        - Capybara
+      materials:
+        - DIAMOND_HELMET
+        - DIAMOND_LEGGINGS
+      has_nbt:
+        - capybaraArmor
+  illegal-items:
+    ruleA:
+      materials:
+        - DIAMOND_SWORD
+      has_nbt:
+        - ultraIllegalObject
 settings:
   automatic-inventory-updating:
     enabled: true
@@ -39,8 +46,9 @@ settings:
   clear-stacked-items: true
 messages:
   dupe-found-player: "§7* §cYour item has been flagged has duplicated, please contact an administrator."
-  stacked-item-player: "§7* §cHaving such stacked item is illegal, please contact an administrator."
+  stacked-item-found-player: "§7* §cHaving such stacked item is illegal, please contact an administrator."
   blacklisted-item-found-player: "§7* §cThis item has been blacklisted, please contact an administrator."
+  illegal-item-found-player: "§7* §cThis item is illegal, please contact an administrator."
   not-tracked: "§7* §cThis item is not tracked."
   commands:
     insufficient-permission: "§7* §cYou do not have the permission to use that command."
