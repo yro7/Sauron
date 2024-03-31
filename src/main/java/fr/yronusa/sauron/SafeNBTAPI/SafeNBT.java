@@ -41,10 +41,15 @@ public class SafeNBT {
     // MODIFIED VERSION
 
     public static Method m;
+
+    public static Method hasKeyMethod;
     public static Method getCompound;
-
-
     private final Object tagCompund;
+    public static Method nmsGetMethod;
+
+    public static Method nbtSetMethod;
+
+
 
     static{
         try{
@@ -65,6 +70,9 @@ public class SafeNBT {
 
             m = craftItemstackClass.getMethod("asNMSCopy", ItemStack.class);
             getCompound = nmsItemstackClass.getMethod("getTag");
+            hasKeyMethod = tagCompoundClass.getMethod("hasKey", String.class);
+            nmsGetMethod = craftItemstackClass.getMethod("asNMSCopy", ItemStack.class);
+            nbtSetMethod = nmsItemstackClass.getMethod("setTag", tagCompoundClass);
         }
         catch(Exception ex){
             ex.printStackTrace();
@@ -340,10 +348,9 @@ public class SafeNBT {
 
     public boolean hasKey(String key){
         try{
-            Method m = tagCompoundClass.getMethod("hasKey", String.class);
-            m.setAccessible(true);
-            Object o = m.invoke(this.tagCompund, key);
-            m.setAccessible(false);
+            hasKeyMethod.setAccessible(true);
+            Object o = hasKeyMethod.invoke(this.tagCompund, key);
+            hasKeyMethod.setAccessible(false);
 
             return o instanceof Boolean && (Boolean) o;
         }
@@ -355,15 +362,13 @@ public class SafeNBT {
 
     public ItemStack apply(ItemStack item){
         try{
-            Method nmsGet = craftItemstackClass.getMethod("asNMSCopy", ItemStack.class);
-            nmsGet.setAccessible(true);
-            Object nmsStack = nmsGet.invoke(null, item);
-            nmsGet.setAccessible(false);
+            nmsGetMethod.setAccessible(true);
+            Object nmsStack = nmsGetMethod.invoke(null, item);
+            nmsGetMethod.setAccessible(false);
 
-            Method nbtSet = nmsItemstackClass.getMethod("setTag", tagCompoundClass);
-            nbtSet.setAccessible(true);
-            nbtSet.invoke(nmsStack, this.tagCompund);
-            nbtSet.setAccessible(false);
+            nbtSetMethod.setAccessible(true);
+            nbtSetMethod.invoke(nmsStack, this.tagCompund);
+            nbtSetMethod.setAccessible(false);
 
             Method m = craftItemstackClass.getMethod("asBukkitCopy", nmsItemstackClass);
             m.setAccessible(true);
