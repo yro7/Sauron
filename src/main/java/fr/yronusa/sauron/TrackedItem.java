@@ -48,7 +48,6 @@ public class TrackedItem {
         ItemStack item = i.getItem();
         if(item == null) return false;
         if(!Config.trackStackedItems && item.getAmount() != 1) return false;
-
         for(TrackingRule rule : Config.trackingRules){
             if(rule.test(i.getItem())) return true;
         }
@@ -148,20 +147,21 @@ public class TrackedItem {
      */
     public void update(boolean forceUpdate) {
         // Check if the update should be skipped based on conditions
+        System.out.println("updating item...");
         if (!forceUpdate && !shouldUpdate()) {
             return;
         }
-
+        System.out.println("t1.");
         // Cancel if the player is exempt
         if(this.getPlayer() != null && this.getPlayer().hasPermission("sauron.exempt")) return;
-
+        System.out.println("t2.");
         // Check for stacked items and trigger event if configured to clear stacked items
         if (this.getItem() != null && Config.clearStackedItems && this.getItem().getAmount() > 1) {
             StackedItemDetectedEvent stackedItemDetected = new StackedItemDetectedEvent(this);
             Bukkit.getPluginManager().callEvent(stackedItemDetected);
             return;
         }
-
+        System.out.println("t3.");
         // Asynchronously check if the item is blacklisted or duplicated
         CompletableFuture<Boolean> isBlacklisted = CompletableFuture.supplyAsync(() -> Database.isBlacklisted(this)).exceptionally(error -> false);
         CompletableFuture<Boolean> isDupli = CompletableFuture.supplyAsync(() -> Database.isDuplicated(this)).exceptionally(error -> {
@@ -171,7 +171,7 @@ public class TrackedItem {
             this.getItemMutable().updateDate(newDate);
             return false;
         });
-
+        System.out.println("t4.");
         // Combine the results of blacklist and duplication checks
         CompletableFuture<Pair<Boolean, Boolean>> combinedResult = isBlacklisted.thenCombine(isDupli, (blacklist, dupe) -> new Pair<>() {
             @Override
@@ -190,7 +190,6 @@ public class TrackedItem {
                 return dupe;
             }
         });
-
         combinedResult.thenAccept(resPair -> {
             if (resPair.getLeft()) {
                 // Trigger event for blacklisted item detection

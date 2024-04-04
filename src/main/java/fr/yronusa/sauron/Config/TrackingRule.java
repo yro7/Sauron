@@ -164,11 +164,11 @@ public class TrackingRule implements Predicate<ItemStack> {
     @Override
     public boolean test(ItemStack itemStack) {
         return isOfMaterial(itemStack, this.materials)
+                && isUnbreakable(itemStack, this.isUnbreakable)
                 && hasFlag(itemStack, this.flags)
                 && hasNbt(itemStack, this.nbt)
                 && hasKeyValueNbt(itemStack, this.nbtEquals)
-                && containsString(itemStack, this.contains)
-                && isUnbreakable(itemStack, this.isUnbreakable);
+                && containsString(itemStack, this.contains);
     }
 
     public void print(){

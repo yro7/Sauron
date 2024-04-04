@@ -33,6 +33,7 @@ public class Tracker implements org.bukkit.event.Listener {
             return;
         }
         ItemMutable i = new ItemMutable(item, inventory, slot);
+
         if(i.hasTrackingID()){
             new TrackedItem(i).update();
             return;

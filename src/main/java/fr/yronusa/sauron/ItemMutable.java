@@ -1,5 +1,7 @@
 package fr.yronusa.sauron;
 
+import de.tr7zw.nbtapi.NBT;
+import de.tr7zw.nbtapi.iface.ReadWriteNBT;
 import fr.yronusa.sauron.Config.Config;
 import fr.yronusa.sauron.Config.TrackingRule;
 import fr.yronusa.sauron.Event.IllegalItemDetectedEvent;
@@ -96,8 +98,20 @@ public class ItemMutable {
     }
 
     public boolean hasTrackingID(){
-        SafeNBT nbt = SafeNBT.get(this.item);
-        return nbt.hasKey("sauron_id");
+
+        ReadWriteNBT nbt2 = NBT.itemStackToNBT(this.getItem());
+        ReadWriteNBT nbt3 = nbt2.getCompound("tag");
+        if(nbt3 != null) return nbt3.hasTag("sauron_id");
+        return false;
+          /**
+        if(TrackedItem.shouldBeTrack(this)){
+            SafeNBT nbt = SafeNBT.get(this.item);
+            return nbt.hasKey("sauron_id");
+        }
+
+        return false;
+       // SafeNBT nbt = SafeNBT.get(this.item);
+      //  return nbt.hasKey("sauron_id"); **/
     }
 
     public static boolean hasTrackingID(ItemStack i){
