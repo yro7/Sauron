@@ -155,7 +155,7 @@ public class Tracker implements org.bukkit.event.Listener {
                 }
                 // Find the next item with a tracking ID (and perform check for illegals item, through ItemMutable's constructor).
                 ItemMutable itemMutable = new ItemMutable(inventory.getItem(counter), inventory, counter);
-                while (counter < size && !itemMutable.hasTrackingID()) {
+                while (counter < size && !itemMutable.hasTrackingIDGentle()) {
                     counter++;
                 }
 

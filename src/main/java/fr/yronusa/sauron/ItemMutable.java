@@ -1,7 +1,5 @@
 package fr.yronusa.sauron;
 
-import de.tr7zw.nbtapi.NBT;
-import de.tr7zw.nbtapi.iface.ReadWriteNBT;
 import fr.yronusa.sauron.Config.Config;
 import fr.yronusa.sauron.Config.TrackingRule;
 import fr.yronusa.sauron.Event.IllegalItemDetectedEvent;
@@ -10,7 +8,9 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.util.io.BukkitObjectOutputStream;
 import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
 
@@ -97,27 +97,45 @@ public class ItemMutable {
         return UUID.fromString(nbt.getString("sauron_id"));
     }
 
+    /**
+     * Tries to get a sauron_id on the specified item.
+     * @return True if the item is tracked, false otherwise.
+     */
     public boolean hasTrackingID(){
 
+        SafeNBT nbt = SafeNBT.get(this.item);
+        return nbt.hasKey("sauron_id");
+    /**
         ReadWriteNBT nbt2 = NBT.itemStackToNBT(this.getItem());
         ReadWriteNBT nbt3 = nbt2.getCompound("tag");
         if(nbt3 != null) return nbt3.hasTag("sauron_id");
-        return false;
-          /**
-        if(TrackedItem.shouldBeTrack(this)){
-            SafeNBT nbt = SafeNBT.get(this.item);
-            return nbt.hasKey("sauron_id");
-        }
-
         return false;
        // SafeNBT nbt = SafeNBT.get(this.item);
       //  return nbt.hasKey("sauron_id"); **/
     }
 
-    public static boolean hasTrackingID(ItemStack i){
-        SafeNBT nbt = SafeNBT.get(i);
-        return nbt.hasKey("sauron_id");
+    /**
+     * A gentle way to check if the item is tracked. Instead of performing a check on custom NBT which is heavy, it just
+     * checks if the item has a certain itemflag (which is way quicker to check).
+     * @return true if the item is tracked (no false positives). However, false negatives are possible.
+     *
+     */
+
+    public boolean hasTrackingIDGentle(){
+        if(this.item == null) return false;
+        if(this.item.getItemMeta().getItemFlags().contains(ItemFlag.HIDE_PLACED_ON)) {
+            SafeNBT nbt = SafeNBT.get(this.item);
+            return nbt.hasKey("sauron_id");
+        }
+        return false;
     }
+
+    /**
+     * Adds all necessary data on a newly tracked item.
+     * It will also add a {@link ItemFlag#HIDE_PLACED_ON} flag that is used in the {@link #hasTrackingIDGentle()}} method.
+     * @param id The standard java {@link UUID} that will be registered onto the item's nbt.
+     * @param newDate A sql {@link Timestamp} of last item's update.
+     */
 
     public void setTrackable(UUID id, Timestamp newDate){
 
@@ -130,7 +148,11 @@ public class ItemMutable {
             SafeNBT nbt = SafeNBT.get(i);
             nbt.setString("sauron_id", id.toString());
             nbt.setString("sauron_date", newDate.toString());
-            this.update(nbt.apply(i));
+            ItemStack newItem = nbt.apply(i);
+            ItemMeta newMeta = newItem.getItemMeta();
+            newMeta.addItemFlags(ItemFlag.HIDE_PLACED_ON);
+            newItem.setItemMeta(newMeta);
+            this.update(newItem);
         }
 
 
@@ -138,9 +160,21 @@ public class ItemMutable {
     }
 
 
+    /**
+     * Allows to update an ItemStack ItemMeta (immutable by default).
+     * As older versions of Sauron didn't implementend the {@link #hasTrackingIDGentle()} method,
+     * also puts if necessary a HIDE_PLACED_ON {@link ItemFlag} onto int.
+     * @param newItem the modified version of the item
+     */
     public void update(ItemStack newItem){
         Inventory inv = this.getInventory();
-        ItemStack i = this.getItem();
+
+        if(!newItem.getItemMeta().hasItemFlag(ItemFlag.HIDE_PLACED_ON)){
+            ItemMeta newMeta = newItem.getItemMeta();
+            newMeta.addItemFlags(ItemFlag.HIDE_PLACED_ON);
+            newItem.setItemMeta(newMeta);
+        }
+
         this.item = newItem;
         inv.setItem(this.getInventoryPlace(), newItem);
     }

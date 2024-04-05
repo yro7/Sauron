@@ -85,6 +85,9 @@ public class TrackedItem {
      * @return The TrackedItem object representing the tracked item.
      */
     public static TrackedItem startTracking(ItemMutable item) {
+
+        if(item.getPlayer() != null && item.getPlayer().hasPermission("sauron.exempt")) return null;
+
         // Check if the item already has a tracking ID
         if (item.hasTrackingID()) {
             // If yes, create a TrackedItem object to update it
@@ -147,21 +150,19 @@ public class TrackedItem {
      */
     public void update(boolean forceUpdate) {
         // Check if the update should be skipped based on conditions
-        System.out.println("updating item...");
+        if(item.getPlayer() != null && item.getPlayer().hasPermission("sauron.exempt")) return;
+
         if (!forceUpdate && !shouldUpdate()) {
             return;
         }
-        System.out.println("t1.");
         // Cancel if the player is exempt
         if(this.getPlayer() != null && this.getPlayer().hasPermission("sauron.exempt")) return;
-        System.out.println("t2.");
         // Check for stacked items and trigger event if configured to clear stacked items
         if (this.getItem() != null && Config.clearStackedItems && this.getItem().getAmount() > 1) {
             StackedItemDetectedEvent stackedItemDetected = new StackedItemDetectedEvent(this);
             Bukkit.getPluginManager().callEvent(stackedItemDetected);
             return;
         }
-        System.out.println("t3.");
         // Asynchronously check if the item is blacklisted or duplicated
         CompletableFuture<Boolean> isBlacklisted = CompletableFuture.supplyAsync(() -> Database.isBlacklisted(this)).exceptionally(error -> false);
         CompletableFuture<Boolean> isDupli = CompletableFuture.supplyAsync(() -> Database.isDuplicated(this)).exceptionally(error -> {
@@ -171,7 +172,6 @@ public class TrackedItem {
             this.getItemMutable().updateDate(newDate);
             return false;
         });
-        System.out.println("t4.");
         // Combine the results of blacklist and duplication checks
         CompletableFuture<Pair<Boolean, Boolean>> combinedResult = isBlacklisted.thenCombine(isDupli, (blacklist, dupe) -> new Pair<>() {
             @Override
