@@ -1,7 +1,6 @@
 package fr.yronusa.sauron;
 
 import fr.yronusa.sauron.Config.Config;
-import fr.yronusa.sauron.Config.TrackingRule;
 import fr.yronusa.sauron.Database.Database;
 import fr.yronusa.sauron.Event.BlacklistedItemDetectedEvent;
 import fr.yronusa.sauron.Event.DupeDetectedEvent;
@@ -43,17 +42,6 @@ public class TrackedItem {
 
     }
 
-    public static boolean shouldBeTrack(ItemMutable i) {
-        if(!Config.enableItemsTracking) return false;
-        ItemStack item = i.getItem();
-        if(item == null) return false;
-        if(!Config.trackStackedItems && item.getAmount() != 1) return false;
-        for(TrackingRule rule : Config.trackingRules){
-            if(rule.test(i.getItem())) return true;
-        }
-
-        return false;
-    }
 
     public String getBase64(){
         return this.getItemMutable().getBase64();
@@ -122,7 +110,7 @@ public class TrackedItem {
                 (new TrackedItem(item)).update();
                 return;
             }
-            if( shouldBeTrack(item)){
+            if(item.shouldBeTrack()){
                 startTracking(item);
             }
         }
@@ -135,7 +123,7 @@ public class TrackedItem {
      *
      * @return the {@link Player} associated with the Tracked Item if found, null otherwise.
      */
-    public Player getPlayer(){
+    public Player getPlayer() {
         return this.getItemMutable().getPlayer();
     }
 
@@ -228,7 +216,7 @@ public class TrackedItem {
      * Can be bypassed using the "true" flag option in {@link TrackedItem#update(boolean)}}.
      * @return true if yes, false otherwise
      */
-    private boolean shouldUpdate() {
+    public boolean shouldUpdate() {
         Timestamp itemTimestamp = this.getLastUpdateItem();
         Timestamp actualTime = Sauron.getActualDate();
         long difference = actualTime.getTime() - itemTimestamp.getTime();

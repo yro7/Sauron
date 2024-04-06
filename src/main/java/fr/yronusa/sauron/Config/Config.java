@@ -3,6 +3,7 @@ package fr.yronusa.sauron.Config;
 import fr.yronusa.sauron.Database.Database;
 import fr.yronusa.sauron.Sauron;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.List;
 
@@ -20,8 +21,6 @@ public class Config {
     public static boolean enableItemsTracking;
     public static int inHandUpdateInterval;
     public static boolean saveItemData;
-
-    public static int automaticUpdateInterval;
 
     /**
      * Should the plugin apply a tracker on {@link org.bukkit.inventory.ItemStack} corresponding to a {@link TrackingRule} with amount > 1 ?
@@ -133,6 +132,23 @@ public class Config {
 
     public static String get(String s){
         return config.getString(s);
+    }
+
+    public static boolean itemStackIsToTrack(ItemStack item) {
+        return itemStackMatchesRules(item, Config.trackingRules);
+    }
+    public static boolean itemStackIsIllegal(ItemStack item){
+        return itemStackMatchesRules(item, Config.illegalItemRules);
+    }
+
+    public static boolean itemStackMatchesRules(ItemStack item, List<TrackingRule> list){
+        if(item == null) return false;
+
+        for(TrackingRule trackingRule : list){
+            if(trackingRule.test(item)) return true;
+        }
+
+        return false;
     }
 
 

@@ -5,12 +5,12 @@ import fr.yronusa.sauron.Config.TrackingRule;
 import fr.yronusa.sauron.Event.IllegalItemDetectedEvent;
 import fr.yronusa.sauron.SafeNBTAPI.SafeNBT;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.util.io.BukkitObjectOutputStream;
 import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
 
@@ -48,12 +48,11 @@ public class ItemMutable {
     public boolean verifIllegal() {
         ItemStack item = this.getItem();
         if(item == null || Config.illegalItemRules == null) return false;
-        for(TrackingRule rule : Config.illegalItemRules){
-            if(rule.test(item)){
+        if(Config.itemStackIsIllegal(item)){
                 IllegalItemDetectedEvent illegalItemDetectedEvent = new IllegalItemDetectedEvent(this);
                 Bukkit.getPluginManager().callEvent(illegalItemDetectedEvent);
-            }
         }
+
         return true;
     }
     public Timestamp getLastUpdate(){
@@ -78,7 +77,15 @@ public class ItemMutable {
         this.inventory = p.getInventory();
         this.inventoryPlace = slot;
     }
+    public boolean shouldBeTrack() {
+        if(!Config.enableItemsTracking) return false;
+        if(this.getItem() == null) return false;
+        if(!Config.trackStackedItems && this.getItem().getAmount() != 1) return false;
 
+        if(Config.itemStackIsToTrack(this.getItem())) return true;
+
+        return false;
+    }
     public ItemStack getItem() {
         return this.item;
     }
@@ -116,18 +123,24 @@ public class ItemMutable {
 
     /**
      * A gentle way to check if the item is tracked. Instead of performing a check on custom NBT which is heavy, it just
-     * checks if the item has a certain itemflag (which is way quicker to check).
+     * checks if the item matches a {@link TrackingRule}.
      * @return true if the item is tracked (no false positives). However, false negatives are possible.
      *
      */
 
     public boolean hasTrackingIDGentle(){
-        if(this.item == null) return false;
-        if(this.item.getItemMeta().getItemFlags().contains(ItemFlag.HIDE_PLACED_ON)) {
+
+        SafeNBT nbt = SafeNBT.get(this.item);
+        return nbt.hasKey("sauron_id");
+        /**
+        if(Config.itemStackIsToTrack(this.getItem())){
             SafeNBT nbt = SafeNBT.get(this.item);
             return nbt.hasKey("sauron_id");
         }
-        return false;
+
+
+
+        return false;**/
     }
 
     /**
@@ -148,11 +161,7 @@ public class ItemMutable {
             SafeNBT nbt = SafeNBT.get(i);
             nbt.setString("sauron_id", id.toString());
             nbt.setString("sauron_date", newDate.toString());
-            ItemStack newItem = nbt.apply(i);
-            ItemMeta newMeta = newItem.getItemMeta();
-            newMeta.addItemFlags(ItemFlag.HIDE_PLACED_ON);
-            newItem.setItemMeta(newMeta);
-            this.update(newItem);
+            this.update(nbt.apply(i));
         }
 
 
@@ -162,18 +171,10 @@ public class ItemMutable {
 
     /**
      * Allows to update an ItemStack ItemMeta (immutable by default).
-     * As older versions of Sauron didn't implementend the {@link #hasTrackingIDGentle()} method,
-     * also puts if necessary a HIDE_PLACED_ON {@link ItemFlag} onto int.
      * @param newItem the modified version of the item
      */
     public void update(ItemStack newItem){
         Inventory inv = this.getInventory();
-
-        if(!newItem.getItemMeta().hasItemFlag(ItemFlag.HIDE_PLACED_ON)){
-            ItemMeta newMeta = newItem.getItemMeta();
-            newMeta.addItemFlags(ItemFlag.HIDE_PLACED_ON);
-            newItem.setItemMeta(newMeta);
-        }
 
         this.item = newItem;
         inv.setItem(this.getInventoryPlace(), newItem);
@@ -219,6 +220,7 @@ public class ItemMutable {
     }
 
     public Player getPlayer(){
+        Location inventoryLocation = this.getInventory().getLocation();
         Inventory inventory = this.getInventory();;
         if(inventory.getHolder() instanceof Player p){
             return p;

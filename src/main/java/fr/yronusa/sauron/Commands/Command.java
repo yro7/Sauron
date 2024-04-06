@@ -18,7 +18,6 @@ import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.Timestamp;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -61,6 +60,9 @@ public class Command implements CommandExecutor {
             case "crash":
                 crash(p,strings);
                 break;
+            case "tracker":
+                tracker(p);
+                break;
             default:
                 help(p);
                 break;
@@ -68,6 +70,20 @@ public class Command implements CommandExecutor {
         }
 
         return true;
+    }
+
+    private void tracker(Player p) {
+
+        p.sendMessage("§aInformation on automatic tracking : ");
+        p.sendMessage("");
+        p.sendMessage("§aAutomatic players' inventories updating: " + Config.automaticInventoryUpdating);
+        p.sendMessage("§aDelay between checks: " + Config.delayBetweenChecks);
+        p.sendMessage("§aDelay between items: " + Config.delayBetweenItems);
+        p.sendMessage("§aDelay between players: " + Config.delayBetweenPlayers);
+        p.sendMessage("");
+        p.sendMessage("§bNumbers of currently updating inventories : " + Tracker.inventoriesUpdatingTask.size());
+        p.sendMessage("§bNumbers of updated inventories since last clear: " + Tracker.checkedInventories.size());
+
     }
 
     public void help(Player p) {

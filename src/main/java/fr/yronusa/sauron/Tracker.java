@@ -14,9 +14,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.util.ArrayDeque;
-import java.util.Collection;
-import java.util.HashSet;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -27,6 +25,8 @@ public class Tracker implements org.bukkit.event.Listener {
     public static HashSet<Location> checkedInventories;
 
     public static BukkitRunnable currentPlayersCheck;
+
+    public static List<BukkitRunnable> inventoriesUpdatingTask;
 
     public void execute(Inventory inventory, ItemStack item, int slot){
         if(item==null){
@@ -39,7 +39,7 @@ public class Tracker implements org.bukkit.event.Listener {
             return;
         }
 
-        if(TrackedItem.shouldBeTrack(i)){
+        if(i.shouldBeTrack()){
             TrackedItem.startTracking(i);
         }
 
@@ -49,8 +49,10 @@ public class Tracker implements org.bukkit.event.Listener {
 
     public static void initialize(){
         checkedInventories = new HashSet<>();
+        inventoriesUpdatingTask = new ArrayList<>();
         if(Config.automaticInventoryUpdating) updatePlayersInventorySafe();
 
+        // Automatically clears the list of containers that have been checked every x time
         new BukkitRunnable() {
             @Override
             public void run() {
@@ -94,7 +96,7 @@ public class Tracker implements org.bukkit.event.Listener {
      * It uses a more gentle approach by checking one player's inventory at a time to reduce database requests.
      */
     public static void updatePlayersInventorySafe() {
-        BukkitRunnable task = new BukkitRunnable() {
+        BukkitRunnable checksAllPlayers = new BukkitRunnable() {
             @Override
             public void run() {
                 Collection<? extends Player> onlinePlayers = Bukkit.getOnlinePlayers().stream().filter(p->!p.hasPermission("sauron.exempt")).toList();
@@ -125,8 +127,9 @@ public class Tracker implements org.bukkit.event.Listener {
             }
         };
 
-        task.runTaskTimer(Sauron.getInstance(), 0, Config.delayBetweenChecks * 20L);
-        currentPlayersCheck = task;
+
+        checksAllPlayers.runTaskTimer(Sauron.getInstance(), 0, Config.delayBetweenChecks * 20L);
+        currentPlayersCheck = checksAllPlayers;
     }
 
 
@@ -140,34 +143,56 @@ public class Tracker implements org.bukkit.event.Listener {
      * @param inventory The inventory to update safely.
      */
     public static void updateInventorySafely(Inventory inventory) {
+
+        // If the inventory has recently been checked, cancel the operation.
         if(checkedInventories.contains(inventory.getLocation())) return;
         checkedInventories.add(inventory.getLocation());
+
         int size = inventory.getSize();
+
+        // This position counter will increment each time the task is repeated, allowing to check items one after one with
+        // a delay between.
         AtomicInteger position = new AtomicInteger(0);
-        new BukkitRunnable() {
+        BukkitRunnable updateInventory = new BukkitRunnable() {
             @Override
             public void run() {
                 int counter = position.get();
-                if (counter >= size) {
-                    // If reached the end of the inventory, cancel the task
-                    this.cancel();
-                    return;
-                }
-                // Find the next item with a tracking ID (and perform check for illegals item, through ItemMutable's constructor).
-                ItemMutable itemMutable = new ItemMutable(inventory.getItem(counter), inventory, counter);
-                while (counter < size && !itemMutable.hasTrackingIDGentle()) {
+                ItemMutable itemToCheck = new ItemMutable(inventory.getItem(counter), inventory, counter);
+                // Find the next item with a tracking ID
+                // (and perform check for illegals item, through ItemMutable's constructor).
+                while (counter < size-1) {
+
+                    // If we found a tracking item, we update it and then return;
+                    // so we wait before eventually updating another item.
+                    if (itemToCheck.hasTrackingIDGentle()) {
+                        TrackedItem trackedItem = new TrackedItem(itemToCheck);
+                        if(trackedItem.shouldUpdate()){
+                            trackedItem.update();
+                            counter++;
+                            position.set(counter);
+                            return;
+                        }
+                    }
+
+                    if(itemToCheck.shouldBeTrack()){
+                        TrackedItem.startTracking(itemToCheck);
+                        counter++;
+                        position.set(counter);
+                        return;
+                    }
                     counter++;
+                    itemToCheck = new ItemMutable(inventory.getItem(counter),inventory,counter);
                 }
 
-                if (counter < size) {
-                    // If found an item with a tracking ID, create a TrackedItem and update it
-                    ItemMutable itemToCheck = new ItemMutable(inventory.getItem(counter), inventory, counter);
-                    new TrackedItem(itemToCheck).update();
-                    counter++;
-                    position.set(counter);
-                }
+                // At this point, we are at the end of the inventory, so we cancel the task
+                Tracker.inventoriesUpdatingTask.remove(this);
+                this.cancel();
+                position.set(counter);
             }
-        }.runTaskTimer(Sauron.getInstance(), 0, Config.automaticUpdateInterval);
+        };
+
+        Tracker.inventoriesUpdatingTask.add(updateInventory);
+        updateInventory.runTaskTimer(Sauron.getInstance(), 0, Config.delayBetweenItems*20L);
     }
 
 
