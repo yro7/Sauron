@@ -1,6 +1,7 @@
 package fr.yronusa.sauron.Config;
 
 import fr.yronusa.sauron.Database.Database;
+import fr.yronusa.sauron.Log;
 import fr.yronusa.sauron.Sauron;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.inventory.ItemStack;
@@ -21,6 +22,7 @@ public class Config {
     public static boolean enableItemsTracking;
     public static int inHandUpdateInterval;
     public static boolean saveItemData;
+    public static Log.Level verboseLevel;
 
     /**
      * Should the plugin apply a tracker on {@link org.bukkit.inventory.ItemStack} corresponding to a {@link TrackingRule} with amount > 1 ?
@@ -104,6 +106,8 @@ public class Config {
         clearStackedItems = config.getBoolean("settings.clear-stacked-items");
         trackStackedItems = config.getBoolean("settings.track-stacked-items");
         saveItemData = config.getBoolean("settings.save-item-data");
+        verboseLevel = Log.Level.valueOf(config.getString("settings.verbose-level"));
+
 
         automaticInventoryUpdating = config.getBoolean("settings.automatic-inventory-updating.enabled");
         delayBetweenPlayers = config.getInt("settings.automatic-inventory-updating.delay-between-players");

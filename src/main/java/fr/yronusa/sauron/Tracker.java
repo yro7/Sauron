@@ -120,7 +120,7 @@ public class Tracker implements org.bukkit.event.Listener {
                             }
                             p = onlinePlayersDeque.pop();
                         }
-                        System.out.println("[SAURON] Now checking " + p.getName() + "'s inventory.");
+                        Log.console("Now checking " + p.getName() + "'s inventory.", Log.Level.LOW);
                         Tracker.updateInventorySafely(p.getInventory());
                     }
                 }.runTaskTimer(Sauron.getInstance(), 0, Config.delayBetweenPlayers * 20L);

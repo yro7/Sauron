@@ -1,5 +1,6 @@
 package fr.yronusa.sauron;
 
+import fr.yronusa.sauron.Config.Config;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -10,7 +11,10 @@ import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
-import java.util.logging.*;
+import java.util.logging.FileHandler;
+import java.util.logging.Formatter;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 
 /**
  * The logger of the plugin.
@@ -20,6 +24,13 @@ public class Log {
     private static Logger logger;
 
     public static Formatter formatter;
+
+    public static enum Level {
+        NONE,
+        LOW,
+        MEDIUM,
+        HIGH,
+    }
 
     public static void initialize(){
         String logsFolderPath = Sauron.getInstance().getDataFolder().getAbsolutePath() + "/logs";
@@ -68,18 +79,18 @@ public class Log {
     }
 
     public static void stackedFound(UUID itemId, Player player, Location location, int quantity, String base64)    {
-        logger.log(Level.SEVERE, "Stacked items found. Quantity : " +
+        logger.log(java.util.logging.Level.SEVERE, "Stacked items found. Quantity : " +
                 quantity,new Object[]{itemId,player, toString(location), base64});
         sendMessageAdmin("§c[Sauron] Stacked item found at " + toString(location) + " by player " + player.getName() + ". quantity : " + quantity);
     }
 
     public static void blacklistFound(UUID itemId, Player player, Location location, String base64)    {
-        logger.log(Level.SEVERE, "Blacklisted item found.",new Object[]{itemId,player, toString(location), base64});
+        logger.log(java.util.logging.Level.SEVERE, "Blacklisted item found.",new Object[]{itemId,player, toString(location), base64});
         sendMessageAdmin("§c[Sauron] Blacklisted item found at " + toString(location) + " by player " + player.getName());
     }
 
     public static void illegalItemFound(Player player, Location location, String base64) {
-        logger.log(Level.SEVERE, "Illegal item found",new Object[]{"null",player, toString(location), base64});
+        logger.log(java.util.logging.Level.SEVERE, "Illegal item found",new Object[]{"null",player, toString(location), base64});
         sendMessageAdmin("§c[Sauron] Illegal item found at " + toString(location) + " by player " + player.getName());
 
     }
@@ -91,10 +102,28 @@ public class Log {
         if(player != null){
             name = player.getName();
         }
-        logger.log(Level.SEVERE, "[SAURON] " + message, new Object[]{itemID, name,
+        logger.log(java.util.logging.Level.SEVERE, "[SAURON] " + message, new Object[]{itemID, name,
                 toString(location), base64, item.toString(), database.toString()});
     }
 
+    /**
+     *   LOW = HIGH /
+     *   MEDIUM = HIGH, MEDIUM /
+     *   HIGH = HIGH, MEDIUM, LOW
+     * @param message
+     * @param level
+     */
+    public static void console(String message, Level level){
+        if (Config.verboseLevel == Level.NONE ||
+            Config.verboseLevel == Level.LOW && level == Level.LOW ||
+            Config.verboseLevel == Level.MEDIUM && level == Level.LOW) {
+            return;
+        }
+
+        System.out.println("[SAURON] " + message);
+
+
+    }
 
 
 

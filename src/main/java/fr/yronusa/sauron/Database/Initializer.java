@@ -75,6 +75,7 @@ public class Initializer {
                 createTableCrashes();
             }
         } catch (SQLException e) {
+
             System.out.println("[Sauron] Database update is OFF, but items will still be tracked according to TrackingRules.");
             e.printStackTrace();
             return false;

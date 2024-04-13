@@ -68,7 +68,7 @@ public final class Sauron extends JavaPlugin {
         // Plugin shutdown logic
 
 
-        System.out.println("[Sauron] Closing database connection.");
+        Log.console("Closing database connection.", Log.Level.HIGH);
         try {
             if(Database.connection != null && !Database.connection.isClosed()) Database.connection.close();
             if(Initializer.sqlServerConnection != null && !Initializer.sqlServerConnection.isClosed()) Initializer.sqlServerConnection.close();

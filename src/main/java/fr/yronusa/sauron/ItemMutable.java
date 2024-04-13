@@ -3,13 +3,13 @@ package fr.yronusa.sauron;
 import fr.yronusa.sauron.Config.Config;
 import fr.yronusa.sauron.Config.TrackingRule;
 import fr.yronusa.sauron.Event.IllegalItemDetectedEvent;
+import fr.yronusa.sauron.Event.ItemUpdateDateEvent;
 import fr.yronusa.sauron.SafeNBTAPI.SafeNBT;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.io.BukkitObjectOutputStream;
 import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
@@ -61,7 +61,8 @@ public class ItemMutable {
             return Timestamp.valueOf(nbt.getString("sauron_date"));
         }
         else{
-            System.out.println("[Sauron] Error: the item isn't tracked.");
+            Log.console("Error: the item is not tracked.", Log.Level.HIGH);
+
         }
 
         return null;
@@ -132,6 +133,7 @@ public class ItemMutable {
 
         SafeNBT nbt = SafeNBT.get(this.item);
         return nbt.hasKey("sauron_id");
+
         /**
         if(Config.itemStackIsToTrack(this.getItem())){
             SafeNBT nbt = SafeNBT.get(this.item);
@@ -145,7 +147,6 @@ public class ItemMutable {
 
     /**
      * Adds all necessary data on a newly tracked item.
-     * It will also add a {@link ItemFlag#HIDE_PLACED_ON} flag that is used in the {@link #hasTrackingIDGentle()}} method.
      * @param id The standard java {@link UUID} that will be registered onto the item's nbt.
      * @param newDate A sql {@link Timestamp} of last item's update.
      */
@@ -185,6 +186,9 @@ public class ItemMutable {
         SafeNBT nbt = SafeNBT.get(i);
         nbt.setString("sauron_date", newDate.toString());
         this.update(nbt.apply(i));
+
+        ItemUpdateDateEvent updateDateEvent = new ItemUpdateDateEvent(this);
+        Bukkit.getPluginManager().callEvent(updateDateEvent);
         return newDate;
     }
 

@@ -11,6 +11,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -39,7 +40,6 @@ public class TrackedItem {
         this.item = item;
         this.originalID = item.getID();
         this.lastUpdate = item.getLastUpdate();
-
     }
 
 
@@ -138,13 +138,14 @@ public class TrackedItem {
      */
     public void update(boolean forceUpdate) {
         // Check if the update should be skipped based on conditions
-        if(item.getPlayer() != null && item.getPlayer().hasPermission("sauron.exempt")) return;
+
 
         if (!forceUpdate && !shouldUpdate()) {
             return;
         }
         // Cancel if the player is exempt
         if(this.getPlayer() != null && this.getPlayer().hasPermission("sauron.exempt")) return;
+        
         // Check for stacked items and trigger event if configured to clear stacked items
         if (this.getItem() != null && Config.clearStackedItems && this.getItem().getAmount() > 1) {
             StackedItemDetectedEvent stackedItemDetected = new StackedItemDetectedEvent(this);
@@ -160,6 +161,7 @@ public class TrackedItem {
             this.getItemMutable().updateDate(newDate);
             return false;
         });
+
         // Combine the results of blacklist and duplication checks
         CompletableFuture<Pair<Boolean, Boolean>> combinedResult = isBlacklisted.thenCombine(isDupli, (blacklist, dupe) -> new Pair<>() {
             @Override
@@ -178,32 +180,42 @@ public class TrackedItem {
                 return dupe;
             }
         });
-        combinedResult.thenAccept(resPair -> {
-            if (resPair.getLeft()) {
-                // Trigger event for blacklisted item detection
-                BlacklistedItemDetectedEvent blacklistDetectEvent = new BlacklistedItemDetectedEvent(this);
-                Bukkit.getScheduler().runTask(Sauron.getInstance(), () -> Bukkit.getPluginManager().callEvent(blacklistDetectEvent));
-                return;
-            }
+        combinedResult.thenAccept(resPair ->
+                {
 
-            // If a tracked item was updated during a crash, the anti-dupe will be triggered after the reboot.
-            // In that case, we just bypass the dupe check and allow the item to be updated.
+                TrackedItem item = this;
+                new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        {
+                            if (resPair.getLeft()) {
+                                // Trigger event for blacklisted item detection
+                                BlacklistedItemDetectedEvent blacklistDetectEvent = new BlacklistedItemDetectedEvent(item);
+                                Bukkit.getScheduler().runTask(Sauron.getInstance(), () -> Bukkit.getPluginManager().callEvent(blacklistDetectEvent));
+                                return;
+                            }
 
-            // If the item was in fact really duplicated, the duplicated one will be cleared at the next look-up.
+                            // If a tracked item was updated during a crash, the anti-dupe will be triggered after the reboot.
+                            // In that case, we just bypass the dupe check and allow the item to be updated.
 
-            if (resPair.getRight() && !Database.wasUpdatedBeforeCrash(this)) {
-                // Trigger event for duplicated item detection
-                DupeDetectedEvent dupeDetectEvent = new DupeDetectedEvent(this, this.getPlayer());
-                Bukkit.getScheduler().runTask(Sauron.getInstance(), () -> Bukkit.getPluginManager().callEvent(dupeDetectEvent));
-                return;
-            }
+                            // If the item was in fact really duplicated, the duplicated one will be cleared at the next look-up.
+
+                            if (resPair.getRight() && !Database.wasUpdatedBeforeCrash(item)) {
+                                // Trigger event for duplicated item detection
+                                DupeDetectedEvent dupeDetectEvent = new DupeDetectedEvent(item, item.getPlayer());
+                                Bukkit.getScheduler().runTask(Sauron.getInstance(), () -> Bukkit.getPluginManager().callEvent(dupeDetectEvent));
+                                return;
+                            }
 
 
-            // If the item is neither blacklisted nor duplicated, update it
-            Timestamp newDate = Sauron.getActualDate();
-            if(Sauron.database) Database.update(this, newDate);
-            this.getItemMutable().updateDate(newDate);
-        });
+                            // If the item is neither blacklisted nor duplicated, update it
+                            Timestamp newDate = Sauron.getActualDate();
+                            if(Sauron.database) Database.update(item, newDate);
+                            item.getItemMutable().updateDate(newDate);
+                        }
+                    }
+                }.runTask(Sauron.getInstance());
+                });
     }
 
 

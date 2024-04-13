@@ -1,10 +1,7 @@
 package fr.yronusa.sauron;
 
 import fr.yronusa.sauron.Config.Config;
-import fr.yronusa.sauron.Event.BlacklistedItemDetectedEvent;
-import fr.yronusa.sauron.Event.DupeDetectedEvent;
-import fr.yronusa.sauron.Event.IllegalItemDetectedEvent;
-import fr.yronusa.sauron.Event.StackedItemDetectedEvent;
+import fr.yronusa.sauron.Event.*;
 import org.bukkit.event.EventHandler;
 
 
@@ -50,4 +47,6 @@ public class Listener implements org.bukkit.event.Listener {
         e.getItemMutable().delete();
 
     }
+
+
 }

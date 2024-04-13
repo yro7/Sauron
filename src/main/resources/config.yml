@@ -34,6 +34,7 @@ rules:
       has_nbt:
         - ultraIllegalObject
 settings:
+  verbose-level: HIGH # Values: HIGH, MEDIUM, LOW, NONE
   automatic-inventory-updating:
     enabled: true
     delay-between-checks: 300

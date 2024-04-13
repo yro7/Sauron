@@ -1,6 +1,6 @@
 package fr.yronusa.sauron.Event;
 
-import fr.yronusa.sauron.TrackedItem;
+import fr.yronusa.sauron.ItemMutable;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
@@ -13,14 +13,18 @@ import java.util.UUID;
 public class ItemUpdateDateEvent extends Event implements Cancellable {
 
 
-    private final TrackedItem item;
+    private final ItemMutable item;
 
-    private final Timestamp newDate;
+
+
     private static final HandlerList HANDLERS_LIST = new HandlerList();
 
-    public ItemUpdateDateEvent(TrackedItem item, Timestamp newDate){
+    public ItemUpdateDateEvent(ItemMutable item){
         this.item = item;
-        this.newDate = newDate;
+    }
+
+    public ItemMutable getItem() {
+        return this.item;
     }
 
     @Override
@@ -32,24 +36,16 @@ public class ItemUpdateDateEvent extends Event implements Cancellable {
         return HANDLERS_LIST;
     }
 
-    public TrackedItem getTrackedItem() {
-        return this.item;
-    }
-
     public ItemStack getItemStack(){
         return this.item.getItem();
     }
 
     public UUID getUUID(){
-        return this.item.getOriginalID();
+        return this.item.getID();
     }
 
-    public Timestamp getOldDate(){
-        return this.item.getLastUpdateItem();
-    }
-
-    public Timestamp getNewDate(){
-        return this.newDate;
+    public Timestamp getItemLastUpdate(){
+        return this.item.getLastUpdate();
     }
 
     @Override
@@ -59,5 +55,6 @@ public class ItemUpdateDateEvent extends Event implements Cancellable {
 
     @Override
     public void setCancelled(boolean b) {
+
     }
 }

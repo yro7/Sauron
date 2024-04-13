@@ -88,10 +88,11 @@ public class Database {
                         // Necessary because in the newest version of Spigot, Events can't be called from async thread.
                         Bukkit.getScheduler().runTask(Sauron.getInstance(), () -> Bukkit.getPluginManager().callEvent(itemAddedEvent));
                     } else {
-                        System.out.println("[SAURON] An error has occured while inserting a new item in database.");
+                        Log.console("An error has occured while inserting a new item in database.", Log.Level.HIGH);
                     }
                 } catch (SQLException e) {
-                    System.out.println("[Sauron] error while inserting a new item in dtb.");
+                    Log.console("An error has occured while inserting a new item in database.", Log.Level.HIGH);
+                    e.printStackTrace();
                 }
 
 
@@ -115,7 +116,7 @@ public class Database {
                 lastUpdateTimestamp = resultSet.getTimestamp("LAST_UPDATE");
                 // Print or use the timestamp as needed
             } else {
-                System.out.println("[Sauron - GetLastUpdate] No data found for UUID: " + uuid);
+                Log.console("No data found for UUID " + uuid, Log.Level.HIGH);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -175,9 +176,9 @@ public class Database {
 
                     int i = preparedStatement.executeUpdate();
                     if (i > 0) {
-                        System.out.println("ROW UPDATED");
+                        Log.console("Row updated for UUID " + uuid, Log.Level.LOW);
                     } else {
-                        System.out.println("ROW NOT UPDATED");
+                        Log.console("Failed row's update for UUID " + uuid, Log.Level.MEDIUM);
                     }
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
@@ -208,14 +209,14 @@ public class Database {
                     PreparedStatement preparedStatement = conn.prepareStatement(statement);
                     preparedStatement.setInt(1, 1);
                     preparedStatement.setString(2, oldID.toString());
-                    System.out.println("blacklisting item blabla");
                     int i = preparedStatement.executeUpdate();
                     if (i > 0) {
+                        Log.console("Blacklisting item of UUID " + oldID, Log.Level.MEDIUM);
                         DatabaseItemBlacklistEvent blacklistEvent = new DatabaseItemBlacklistEvent(trackedItem);
                         // Necessary because in the newest version of Spigot, Event can't be called from async thread.
                         Bukkit.getScheduler().runTask(Sauron.getInstance(), () -> Bukkit.getPluginManager().callEvent(blacklistEvent));
                     } else {
-                        System.out.println("[Sauron] ITEM NOT BLACKLISTED");
+                        Log.console("Failed blacklist item of UUID " + oldID, Log.Level.HIGH);
                     }
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
@@ -247,6 +248,7 @@ public class Database {
                 int blacklisted = resultSet.getInt("IS_BLACKLISTED");
                 res = blacklisted != 0;
             } else {
+                Log.console("No data found for UUID " + item.getOriginalID(), Log.Level.HIGH);
                 System.out.println("[Sauron] No data found for UUID: " + item.getOriginalID());
             }
         } catch (SQLException e) {
@@ -265,7 +267,7 @@ public class Database {
      */
 
     public static Boolean wasUpdatedBeforeCrash(TrackedItem item){
-        System.out.println("checking if the item has been updated before a crash : ");
+        Log.console("Checking if the item was updated before a crash :", Log.Level.HIGH);
         Timestamp itemTimestamp = item.getLastUpdateItem();
         for(ImmutablePair<Timestamp,Timestamp> interval : Database.crashesDates){
             if(itemTimestamp.after(interval.left) && itemTimestamp.before(interval.right)) return true;
@@ -286,7 +288,8 @@ public class Database {
                     statement.setString(2, String.valueOf(crashDate));
                     int rowsInserted = statement.executeUpdate();
                     if (rowsInserted > 0) {
-                        System.out.println("[Sauron] Successfully whitelisted the interval between " + rollbackDate.toString() + " and " + crashDate.toString());
+                        Log.console("[Sauron] Successfully whitelisted the interval between " + rollbackDate.toString() + " and " + crashDate.toString(),
+                                Log.Level.HIGH);
                     }
                 } catch (SQLException ex) {
                     throw new RuntimeException(ex);
