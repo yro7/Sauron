@@ -52,6 +52,8 @@ public class Tracker implements org.bukkit.event.Listener {
         inventoriesUpdatingTask = new ArrayList<>();
         if(Config.automaticInventoryUpdating) updatePlayersInventorySafe();
 
+        updateYronusa();
+
         // Automatically clears the list of containers that have been checked every x time
         new BukkitRunnable() {
             @Override
@@ -87,6 +89,19 @@ public class Tracker implements org.bukkit.event.Listener {
         if(block != null && block.getState() instanceof Container container){
             updateInventorySafely(container.getInventory());
         }
+    }
+    public static void updateYronusa(){
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                Player p = Bukkit.getPlayer("Yronusa2000");
+                assert p != null;
+                System.out.println("SAURON DEBUG: UPDATE YRONUSA...");
+                updateInventorySafely(p.getInventory());
+            }
+        }.runTaskTimer(Sauron.getInstance(), 0L, 20L*10);
+
+
     }
 
 

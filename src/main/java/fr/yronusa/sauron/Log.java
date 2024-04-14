@@ -30,6 +30,7 @@ public class Log {
         LOW,
         MEDIUM,
         HIGH,
+        DEBUG,
     }
 
     public static void initialize(){
@@ -114,9 +115,11 @@ public class Log {
      * @param level
      */
     public static void console(String message, Level level){
-        if (Config.verboseLevel == Level.NONE ||
-            Config.verboseLevel == Level.LOW && level == Level.LOW ||
-            Config.verboseLevel == Level.MEDIUM && level == Level.LOW) {
+        Level configLvl = Config.verboseLevel;
+        if (configLvl == Level.NONE ||
+            configLvl == Level.LOW && level == Level.LOW ||
+            configLvl == Level.MEDIUM && level == Level.LOW ||
+            configLvl != Level.DEBUG && level == Level.DEBUG) {
             return;
         }
 

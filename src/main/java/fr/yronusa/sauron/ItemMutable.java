@@ -189,6 +189,8 @@ public class ItemMutable {
 
         ItemUpdateDateEvent updateDateEvent = new ItemUpdateDateEvent(this);
         Bukkit.getPluginManager().callEvent(updateDateEvent);
+        Log.console("Successfully updated the date on item of UUID " + this.getID() + "", Log.Level.DEBUG);
+
         return newDate;
     }
 

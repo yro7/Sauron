@@ -139,7 +139,6 @@ public class TrackedItem {
     public void update(boolean forceUpdate) {
         // Check if the update should be skipped based on conditions
 
-
         if (!forceUpdate && !shouldUpdate()) {
             return;
         }
@@ -152,13 +151,24 @@ public class TrackedItem {
             Bukkit.getPluginManager().callEvent(stackedItemDetected);
             return;
         }
+
+        Log.console("Begin updating UUID " + this.getOriginalID() + " ...", Log.Level.DEBUG);
         // Asynchronously check if the item is blacklisted or duplicated
         CompletableFuture<Boolean> isBlacklisted = CompletableFuture.supplyAsync(() -> Database.isBlacklisted(this)).exceptionally(error -> false);
         CompletableFuture<Boolean> isDupli = CompletableFuture.supplyAsync(() -> Database.isDuplicated(this)).exceptionally(error -> {
+            TrackedItem item = this;
+            System.out.println("AAAAAA ERREUR OMGGG " + this.getOriginalID());
+            Log.console("Failed to supply Database#isDuplicated while updating UUID " + this.getOriginalID(), Log.Level.HIGH);
             // Handle duplication check error and update the item if necessary
-            Timestamp newDate = Sauron.getActualDate();
-            if (Sauron.database) Database.update(this, newDate);
-            this.getItemMutable().updateDate(newDate);
+            new BukkitRunnable() {
+                @Override
+
+                public void run() {
+                    Timestamp newDate = Sauron.getActualDate();
+                    if (Sauron.database) Database.update(item, newDate);
+                    item.getItemMutable().updateDate(newDate);
+                }
+            }.runTask(Sauron.getInstance());
             return false;
         });
 
@@ -209,6 +219,7 @@ public class TrackedItem {
 
 
                             // If the item is neither blacklisted nor duplicated, update it
+                            System.out.println("normal update of uuidk" + item.getOriginalID());
                             Timestamp newDate = Sauron.getActualDate();
                             if(Sauron.database) Database.update(item, newDate);
                             item.getItemMutable().updateDate(newDate);
