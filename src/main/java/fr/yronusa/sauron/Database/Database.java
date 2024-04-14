@@ -176,6 +176,7 @@ public class Database {
 
                     int i = preparedStatement.executeUpdate();
                     if (i > 0) {
+                        System.out.print("updated " + uuid + " to date : " + newDate);
                         Log.console("Row updated for UUID " + uuid, Log.Level.LOW);
                     } else {
                         Log.console("Failed row's update for UUID " + uuid, Log.Level.MEDIUM);

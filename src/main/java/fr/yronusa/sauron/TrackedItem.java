@@ -9,7 +9,6 @@ import fr.yronusa.sauron.Event.StackedItemDetectedEvent;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -101,20 +100,6 @@ public class TrackedItem {
         }
     }
 
-    public static void update(Inventory inv){
-        int position = 0;
-        for(ItemStack i : inv.getContents()) {
-
-            ItemMutable item = new ItemMutable(i, inv, position);
-            if(item.hasTrackingID()){
-                (new TrackedItem(item)).update();
-                return;
-            }
-            if(item.shouldBeTrack()){
-                startTracking(item);
-            }
-        }
-    }
 
     /**
      * Tries to get the player that triggered the process which led to the creation of the TrackedItem.
@@ -139,38 +124,30 @@ public class TrackedItem {
     public void update(boolean forceUpdate) {
         // Check if the update should be skipped based on conditions
 
-        if (!forceUpdate && !shouldUpdate()) {
-            return;
+        if(Cache.updatingItems.contains(this)) return;
+        Cache.updatingItems.add(this);
+
+        // Cancel if the player is exempt and the item shouldnt be updated
+        if (!forceUpdate && !shouldUpdate() ||
+            this.getPlayer() != null && this.getPlayer().hasPermission("sauron.exempt")) {
+                Cache.updatingItems.remove(this);
+                return;
         }
-        // Cancel if the player is exempt
-        if(this.getPlayer() != null && this.getPlayer().hasPermission("sauron.exempt")) return;
-        
+
         // Check for stacked items and trigger event if configured to clear stacked items
         if (this.getItem() != null && Config.clearStackedItems && this.getItem().getAmount() > 1) {
             StackedItemDetectedEvent stackedItemDetected = new StackedItemDetectedEvent(this);
             Bukkit.getPluginManager().callEvent(stackedItemDetected);
+            Cache.updatingItems.remove(this);
             return;
         }
 
         Log.console("Begin updating UUID " + this.getOriginalID() + " ...", Log.Level.DEBUG);
         // Asynchronously check if the item is blacklisted or duplicated
         CompletableFuture<Boolean> isBlacklisted = CompletableFuture.supplyAsync(() -> Database.isBlacklisted(this)).exceptionally(error -> false);
-        CompletableFuture<Boolean> isDupli = CompletableFuture.supplyAsync(() -> Database.isDuplicated(this)).exceptionally(error -> {
-            TrackedItem item = this;
-            System.out.println("AAAAAA ERREUR OMGGG " + this.getOriginalID());
-            Log.console("Failed to supply Database#isDuplicated while updating UUID " + this.getOriginalID(), Log.Level.HIGH);
-            // Handle duplication check error and update the item if necessary
-            new BukkitRunnable() {
-                @Override
-
-                public void run() {
-                    Timestamp newDate = Sauron.getActualDate();
-                    if (Sauron.database) Database.update(item, newDate);
-                    item.getItemMutable().updateDate(newDate);
-                }
-            }.runTask(Sauron.getInstance());
-            return false;
-        });
+        CompletableFuture<Boolean> isDupli = CompletableFuture.supplyAsync(() -> Database.isDuplicated(this)).exceptionally(error -> false);
+        // If for any particular reason the supplyAsync fails, we simply suppose that the item  wasn't duplicated or blacklisted and pursue with a
+        // normal check.
 
         // Combine the results of blacklist and duplication checks
         CompletableFuture<Pair<Boolean, Boolean>> combinedResult = isBlacklisted.thenCombine(isDupli, (blacklist, dupe) -> new Pair<>() {
@@ -214,7 +191,7 @@ public class TrackedItem {
                                 // Trigger event for duplicated item detection
                                 DupeDetectedEvent dupeDetectEvent = new DupeDetectedEvent(item, item.getPlayer());
                                 Bukkit.getScheduler().runTask(Sauron.getInstance(), () -> Bukkit.getPluginManager().callEvent(dupeDetectEvent));
-                                return;
+
                             }
 
 
@@ -227,6 +204,8 @@ public class TrackedItem {
                     }
                 }.runTask(Sauron.getInstance());
                 });
+
+        Cache.updatingItems.remove(this);
     }
 
 

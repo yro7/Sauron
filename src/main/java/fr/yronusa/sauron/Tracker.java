@@ -72,8 +72,8 @@ public class Tracker implements org.bukkit.event.Listener {
 
     @EventHandler
     public void trackMovedItems(InventoryMoveItemEvent e){
-        TrackedItem.update(e.getDestination());
-        TrackedItem.update(e.getInitiator());
+        updateInventorySafely(e.getDestination());
+        updateInventorySafely(e.getInitiator());
     }
 
     /**
@@ -99,7 +99,7 @@ public class Tracker implements org.bukkit.event.Listener {
                 System.out.println("SAURON DEBUG: UPDATE YRONUSA...");
                 updateInventorySafely(p.getInventory());
             }
-        }.runTaskTimer(Sauron.getInstance(), 0L, 20L*10);
+        }.runTaskTimer(Sauron.getInstance(), 0L, 20L*4);
 
 
     }
