@@ -123,14 +123,9 @@ public class TrackedItem {
      */
     public void update(boolean forceUpdate) {
         // Check if the update should be skipped based on conditions
-
-        if(Cache.updatingItems.contains(this)) return;
-        Cache.updatingItems.add(this);
-
-        // Cancel if the player is exempt and the item shouldnt be updated
+        // Cancel if the player is exempt or if the item shouldnt be updated
         if (!forceUpdate && !shouldUpdate() ||
             this.getPlayer() != null && this.getPlayer().hasPermission("sauron.exempt")) {
-                Cache.updatingItems.remove(this);
                 return;
         }
 
@@ -138,7 +133,6 @@ public class TrackedItem {
         if (this.getItem() != null && Config.clearStackedItems && this.getItem().getAmount() > 1) {
             StackedItemDetectedEvent stackedItemDetected = new StackedItemDetectedEvent(this);
             Bukkit.getPluginManager().callEvent(stackedItemDetected);
-            Cache.updatingItems.remove(this);
             return;
         }
 
@@ -191,21 +185,24 @@ public class TrackedItem {
                                 // Trigger event for duplicated item detection
                                 DupeDetectedEvent dupeDetectEvent = new DupeDetectedEvent(item, item.getPlayer());
                                 Bukkit.getScheduler().runTask(Sauron.getInstance(), () -> Bukkit.getPluginManager().callEvent(dupeDetectEvent));
+                                return;
 
                             }
 
 
                             // If the item is neither blacklisted nor duplicated, update it
-                            System.out.println("normal update of uuidk" + item.getOriginalID());
                             Timestamp newDate = Sauron.getActualDate();
-                            if(Sauron.database) Database.update(item, newDate);
-                            item.getItemMutable().updateDate(newDate);
+                            try{
+                                item.getItemMutable().updateDate(newDate);
+                                if(Sauron.database) Database.update(item, newDate);
+                            } catch(IllegalArgumentException e){
+                                e.printStackTrace();
+                            }
                         }
                     }
                 }.runTask(Sauron.getInstance());
                 });
 
-        Cache.updatingItems.remove(this);
     }
 
 

@@ -7,7 +7,6 @@ import org.bukkit.block.Block;
 import org.bukkit.block.Container;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.inventory.Inventory;
@@ -52,7 +51,7 @@ public class Tracker implements org.bukkit.event.Listener {
         inventoriesUpdatingTask = new ArrayList<>();
         if(Config.automaticInventoryUpdating) updatePlayersInventorySafe();
 
-        updateYronusa();
+      //  updateYronusa();
 
         // Automatically clears the list of containers that have been checked every x time
         new BukkitRunnable() {
@@ -61,6 +60,8 @@ public class Tracker implements org.bukkit.event.Listener {
                 checkedInventories.clear();
             }
         }.runTaskTimer(Sauron.getInstance(), 0,20L*Config.containerUpdateInterval);
+
+
     }
     @EventHandler
     public void trackHandledItems(PlayerItemHeldEvent e){
@@ -68,12 +69,6 @@ public class Tracker implements org.bukkit.event.Listener {
         Inventory inv = p.getInventory();
         int slot = e.getNewSlot();
         execute(inv, inv.getItem(slot),slot);
-    }
-
-    @EventHandler
-    public void trackMovedItems(InventoryMoveItemEvent e){
-        updateInventorySafely(e.getDestination());
-        updateInventorySafely(e.getInitiator());
     }
 
     /**
@@ -179,7 +174,7 @@ public class Tracker implements org.bukkit.event.Listener {
 
                     // If we found a tracking item, we update it and then return;
                     // so we wait before eventually updating another item.
-                    if (itemToCheck.hasTrackingIDGentle()) {
+                    if (itemToCheck.hasTrackingID()) {
                         TrackedItem trackedItem = new TrackedItem(itemToCheck);
                         if(trackedItem.shouldUpdate()){
                             trackedItem.update();
@@ -202,12 +197,14 @@ public class Tracker implements org.bukkit.event.Listener {
                 // At this point, we are at the end of the inventory, so we cancel the task
                 Tracker.inventoriesUpdatingTask.remove(this);
                 this.cancel();
+
                 position.set(counter);
             }
         };
 
         Tracker.inventoriesUpdatingTask.add(updateInventory);
-        updateInventory.runTaskTimer(Sauron.getInstance(), 0, Config.delayBetweenItems*20L);
+
+        updateInventory.runTaskTimer(Sauron.getInstance(), 0, (Config.delayBetweenItems+1));
     }
 
 

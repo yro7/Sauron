@@ -44,7 +44,9 @@ public final class Sauron extends JavaPlugin {
         registerCommands();
         database = Initializer.initializeDatabase();
         Log.initialize();
+        Cache.initialize();
         Tracker.initialize();
+
 
 
     }

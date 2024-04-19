@@ -1,16 +1,17 @@
 package fr.yronusa.sauron;
 
 import fr.yronusa.sauron.Config.Config;
-import fr.yronusa.sauron.Config.TrackingRule;
 import fr.yronusa.sauron.Event.IllegalItemDetectedEvent;
 import fr.yronusa.sauron.Event.ItemUpdateDateEvent;
 import fr.yronusa.sauron.SafeNBTAPI.SafeNBT;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.util.io.BukkitObjectOutputStream;
 import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
 
@@ -83,9 +84,7 @@ public class ItemMutable {
         if(this.getItem() == null) return false;
         if(!Config.trackStackedItems && this.getItem().getAmount() != 1) return false;
 
-        if(Config.itemStackIsToTrack(this.getItem())) return true;
-
-        return false;
+        return Config.itemStackIsToTrack(this.getItem());
     }
     public ItemStack getItem() {
         return this.item;
@@ -113,37 +112,14 @@ public class ItemMutable {
 
         SafeNBT nbt = SafeNBT.get(this.item);
         return nbt.hasKey("sauron_id");
-    /**
-        ReadWriteNBT nbt2 = NBT.itemStackToNBT(this.getItem());
-        ReadWriteNBT nbt3 = nbt2.getCompound("tag");
-        if(nbt3 != null) return nbt3.hasTag("sauron_id");
-        return false;
-       // SafeNBT nbt = SafeNBT.get(this.item);
-      //  return nbt.hasKey("sauron_id"); **/
     }
 
-    /**
-     * A gentle way to check if the item is tracked. Instead of performing a check on custom NBT which is heavy, it just
-     * checks if the item matches a {@link TrackingRule}.
-     * @return true if the item is tracked (no false positives). However, false negatives are possible.
-     *
-     */
-
-    public boolean hasTrackingIDGentle(){
-
-        SafeNBT nbt = SafeNBT.get(this.item);
+    public static boolean hasTrackingID(ItemStack item){
+        if(item == null) return false;
+        SafeNBT nbt = SafeNBT.get(item);
         return nbt.hasKey("sauron_id");
-
-        /**
-        if(Config.itemStackIsToTrack(this.getItem())){
-            SafeNBT nbt = SafeNBT.get(this.item);
-            return nbt.hasKey("sauron_id");
-        }
-
-
-
-        return false;**/
     }
+
 
     /**
      * Adds all necessary data on a newly tracked item.
@@ -162,7 +138,7 @@ public class ItemMutable {
             SafeNBT nbt = SafeNBT.get(i);
             nbt.setString("sauron_id", id.toString());
             nbt.setString("sauron_date", newDate.toString());
-            this.update(nbt.apply(i));
+            this.update(nbt.apply(i).getItemMeta());
         }
 
 
@@ -174,18 +150,23 @@ public class ItemMutable {
      * Allows to update an ItemStack ItemMeta (immutable by default).
      * @param newItem the modified version of the item
      */
-    public void update(ItemStack newItem){
+    public void updateSave(ItemStack newItem){
         Inventory inv = this.getInventory();
-
         this.item = newItem;
         inv.setItem(this.getInventoryPlace(), newItem);
+
     }
 
-    public Timestamp updateDate(Timestamp newDate){
+    public void update(ItemMeta newItemMeta){
+        this.item.setItemMeta(newItemMeta);
+
+    }
+
+    public Timestamp updateDate(Timestamp newDate) throws IllegalStateException{
         ItemStack i = this.getItem();
         SafeNBT nbt = SafeNBT.get(i);
         nbt.setString("sauron_date", newDate.toString());
-        this.update(nbt.apply(i));
+        this.update(nbt.apply(i).getItemMeta());
 
         ItemUpdateDateEvent updateDateEvent = new ItemUpdateDateEvent(this);
         Bukkit.getPluginManager().callEvent(updateDateEvent);
@@ -195,14 +176,16 @@ public class ItemMutable {
     }
 
     public void delete(){
-        this.item.setAmount(0);
+        System.out.print(this);
+        this.item = new ItemStack(Material.AIR);
+        this.getInventory().setItem(this.inventoryPlace, this.item);
     }
 
     public void changeUUID(UUID uuid){
         ItemStack i = this.getItem();
         SafeNBT nbt = SafeNBT.get(i);
         nbt.setString("sauron_id", uuid.toString());
-        this.update(nbt.apply(i));
+        this.update(nbt.apply(i).getItemMeta());
     }
 
     public static String itemStackArrayToBase64(ItemStack[] items) throws IllegalStateException {
@@ -237,6 +220,11 @@ public class ItemMutable {
         }
 
         return null;
+    }
+
+    public String toString(){
+        return this.item.getType() + " " + this.getID()
+                + " place " + this.inventoryPlace + " inventory " + this.inventory;
     }
 
 }

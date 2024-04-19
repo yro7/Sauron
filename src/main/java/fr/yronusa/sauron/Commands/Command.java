@@ -1,13 +1,10 @@
 package fr.yronusa.sauron.Commands;
 
+import fr.yronusa.sauron.*;
 import fr.yronusa.sauron.Config.Config;
 import fr.yronusa.sauron.Config.TrackingRule;
 import fr.yronusa.sauron.Database.Database;
 import fr.yronusa.sauron.Database.Initializer;
-import fr.yronusa.sauron.ItemMutable;
-import fr.yronusa.sauron.Sauron;
-import fr.yronusa.sauron.TrackedItem;
-import fr.yronusa.sauron.Tracker;
 import org.bukkit.Material;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -20,6 +17,8 @@ import org.jetbrains.annotations.NotNull;
 import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.UUID;
+
+import static fr.yronusa.sauron.Tracker.updateYronusa;
 
 public class Command implements CommandExecutor {
 
@@ -63,6 +62,9 @@ public class Command implements CommandExecutor {
             case "tracker":
                 tracker(p);
                 break;
+            case "test":
+                updateYronusa();
+                break;
             default:
                 help(p);
                 break;
@@ -83,6 +85,7 @@ public class Command implements CommandExecutor {
         p.sendMessage("");
         p.sendMessage("§bNumbers of currently updating inventories : " + Tracker.inventoriesUpdatingTask.size());
         p.sendMessage("§bNumbers of updated inventories since last clear: " + Tracker.checkedInventories.size());
+        p.sendMessage("§bNumbers of currently updating tracked items : " + Cache.updatingItems.size());
 
     }
 

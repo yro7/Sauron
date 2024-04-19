@@ -20,7 +20,7 @@ public class Config {
 
     public static boolean enableIllegalItemsLookup;
     public static boolean enableItemsTracking;
-    public static int inHandUpdateInterval;
+    public static long inHandUpdateInterval;
     public static boolean saveItemData;
     public static Log.Level verboseLevel;
 
@@ -37,8 +37,8 @@ public class Config {
     public static boolean clearStackedItems;
 
     public static boolean automaticInventoryUpdating;
-    public static int delayBetweenChecks;
-    public static int delayBetweenPlayers;
+    public static long delayBetweenChecks;
+    public static long delayBetweenPlayers;
     public static long delayBetweenItems;
 
     public static long containerUpdateInterval;
