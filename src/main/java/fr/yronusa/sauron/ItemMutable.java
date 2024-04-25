@@ -17,6 +17,9 @@ import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
 
 import java.io.ByteArrayOutputStream;
 import java.sql.Timestamp;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -30,14 +33,11 @@ public class ItemMutable {
 
     ItemStack item;
     Inventory inventory;
-    int inventoryPlace;
 
 
-    public ItemMutable(ItemStack item, Inventory inventory, int place) {
+    public ItemMutable(ItemStack item, Inventory inventory) {
         this.item = item;
         this.inventory = inventory;
-        this.inventoryPlace = place;
-
         // Avoid to check for illegal item if there aren't any.
         if(Config.enableIllegalItemsLookup) this.verifIllegal();
     }
@@ -71,14 +71,8 @@ public class ItemMutable {
     public ItemMutable(Player p) {
         this.item = p.getInventory().getItemInMainHand();
         this.inventory = p.getInventory();
-        this.inventoryPlace = p.getInventory().getHeldItemSlot();
     }
 
-    public ItemMutable(Player p, int slot) {
-        this.item = p.getInventory().getItem(slot);
-        this.inventory = p.getInventory();
-        this.inventoryPlace = slot;
-    }
     public boolean shouldBeTrack() {
         if(!Config.enableItemsTracking) return false;
         if(this.getItem() == null) return false;
@@ -94,9 +88,6 @@ public class ItemMutable {
         return this.inventory;
     }
 
-    public int getInventoryPlace() {
-        return this.inventoryPlace;
-    }
 
 
     public UUID getID(){
@@ -145,18 +136,6 @@ public class ItemMutable {
 
     }
 
-
-    /**
-     * Allows to update an ItemStack ItemMeta (immutable by default).
-     * @param newItem the modified version of the item
-     */
-    public void updateSave(ItemStack newItem){
-        Inventory inv = this.getInventory();
-        this.item = newItem;
-        inv.setItem(this.getInventoryPlace(), newItem);
-
-    }
-
     public void update(ItemMeta newItemMeta){
         this.item.setItemMeta(newItemMeta);
 
@@ -175,10 +154,25 @@ public class ItemMutable {
         return newDate;
     }
 
-    public void delete(){
+    /**
+     *
+     * @return the number of similar items that have been cleared in the inventory.
+     */
+    public int delete(){
+
         System.out.print(this);
+        Inventory itemInventory = this.getInventory();
+
+        int counter = (int) Arrays.stream(itemInventory.getStorageContents())
+                .filter(i -> i != null && i.isSimilar(this.item))
+                .count();
+        itemInventory.remove(this.item);
+
         this.item = new ItemStack(Material.AIR);
-        this.getInventory().setItem(this.inventoryPlace, this.item);
+        this.item.setType(Material.AIR);
+        this.item.setAmount(0);
+        System.out.println("counter : " + counter);
+        return counter;
     }
 
     public void changeUUID(UUID uuid){
@@ -208,23 +202,40 @@ public class ItemMutable {
         return base.replaceAll("\\n", "");
     }
 
+    /**
+     * Try to get an eventual player that triggered the process which led to the creation of the ItemMutable.
+     * In some cases, that player won't exist, for example if the plugin scanned a container that no player was looking onto.
+     * a {@link ItemMutable} object doesn't to have a player to works as expected, but it is useful for logging purposes.
+     *
+     * @return the {@link Player} associated with the Tracked Item if found, null otherwise.
+     */
     public Player getPlayer(){
-        Location inventoryLocation = this.getInventory().getLocation();
         Inventory inventory = this.getInventory();;
+
+        // If the inventory is owned by a player, return it
         if(inventory.getHolder() instanceof Player p){
             return p;
         }
 
+        // Else, try to see which player could be looking into the container
         for(HumanEntity humanEntity : inventory.getViewers()){
             if(humanEntity instanceof Player p) return p;
         }
 
+        // Else, try to find the nearest player in a 32 blocks radius.
+        Location inventoryLocation = inventory.getLocation();
+        Optional<Player> optionalPlayer = inventoryLocation.getWorld().getNearbyEntitiesByType(Player.class, inventoryLocation, 32)
+                .stream()
+                .min(Comparator.comparingDouble(o -> inventoryLocation.distance(o.getLocation())));
+        if(optionalPlayer.isPresent()) return optionalPlayer.get();;
+
+        // Otherwise, return null.
         return null;
     }
 
     public String toString(){
         return this.item.getType() + " " + this.getID()
-                + " place " + this.inventoryPlace + " inventory " + this.inventory;
+                + " in inventory " + this.inventory;
     }
 
 }

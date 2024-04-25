@@ -102,7 +102,7 @@ public class TrackedItem {
 
 
     /**
-     * Tries to get the player that triggered the process which led to the creation of the TrackedItem.
+     * Tries to get an eventual player that triggered the process which led to the creation of the TrackedItem.
      * In some cases, that player won't exist, for example if the plugin scanned a container that no player was looking onto.
      * a {@link TrackedItem} object doesn't to have a player to works as expected, but it is useful for logging purposes.
      *

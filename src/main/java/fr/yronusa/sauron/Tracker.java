@@ -27,11 +27,11 @@ public class Tracker implements org.bukkit.event.Listener {
 
     public static List<BukkitRunnable> inventoriesUpdatingTask;
 
-    public void execute(Inventory inventory, ItemStack item, int slot){
+    public void execute(Inventory inventory, ItemStack item){
         if(item==null){
             return;
         }
-        ItemMutable i = new ItemMutable(item, inventory, slot);
+        ItemMutable i = new ItemMutable(item, inventory);
 
         if(i.hasTrackingID()){
             new TrackedItem(i).update();
@@ -68,7 +68,7 @@ public class Tracker implements org.bukkit.event.Listener {
         Player p = e.getPlayer();
         Inventory inv = p.getInventory();
         int slot = e.getNewSlot();
-        execute(inv, inv.getItem(slot),slot);
+        execute(inv, inv.getItem(slot));
     }
 
     /**
@@ -167,7 +167,7 @@ public class Tracker implements org.bukkit.event.Listener {
             @Override
             public void run() {
                 int counter = position.get();
-                ItemMutable itemToCheck = new ItemMutable(inventory.getItem(counter), inventory, counter);
+                ItemMutable itemToCheck = new ItemMutable(inventory.getItem(counter), inventory);
                 // Find the next item with a tracking ID
                 // (and perform check for illegals item, through ItemMutable's constructor).
                 while (counter < size-1) {
@@ -191,7 +191,7 @@ public class Tracker implements org.bukkit.event.Listener {
                         return;
                     }
                     counter++;
-                    itemToCheck = new ItemMutable(inventory.getItem(counter),inventory,counter);
+                    itemToCheck = new ItemMutable(inventory.getItem(counter),inventory);
                 }
 
                 // At this point, we are at the end of the inventory, so we cancel the task
