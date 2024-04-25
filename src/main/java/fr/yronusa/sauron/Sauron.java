@@ -42,9 +42,11 @@ public final class Sauron extends JavaPlugin {
         Config.load();
         registerEvents();
         registerCommands();
+
         database = Initializer.initializeDatabase();
         Log.initialize();
         Cache.initialize();
+        CrashHandler.initialize();
         Tracker.initialize();
 
 
@@ -69,6 +71,7 @@ public final class Sauron extends JavaPlugin {
     public void onDisable() {
         // Plugin shutdown logic
 
+        CrashHandler.close();
 
         Log.console("Closing database connection.", Log.Level.HIGH);
         try {

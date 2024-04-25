@@ -79,3 +79,7 @@ messages:
       - ""
       - "§7* §c/sauron stop: §7Stop or start tracked item's update for player. Can be used for debugging or to custom items."
       - ""
+
+crash-handler:
+  crashed: false
+  oldest-item: ""

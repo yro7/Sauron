@@ -73,6 +73,9 @@ public class Config {
     public static String blacklistedItemPlayer;
 
 
+    public static FileConfiguration getConfig(){
+        return config;
+    }
 
     public static boolean load(){
         try{
