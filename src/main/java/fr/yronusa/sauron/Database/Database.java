@@ -269,14 +269,18 @@ public class Database {
     public static Boolean wasUpdatedBeforeCrash(TrackedItem item){
         Log.console("Checking if the item was updated before a crash :", Log.Level.HIGH);
         Timestamp itemTimestamp = item.getLastUpdateItem();
+        System.out.print(itemTimestamp);
         for(ImmutablePair<Timestamp,Timestamp> interval : Database.crashesDates){
+            System.out.print("("+interval.left+","+interval.right+")");
             if(itemTimestamp.after(interval.left) && itemTimestamp.before(interval.right)) return true;
         }
 
+        System.out.print("falseee");
         return false;
     }
 
     public static void addCrashDate(Timestamp rollbackDate, Timestamp crashDate){
+        Database.crashesDates.add(new ImmutablePair<>(rollbackDate, crashDate));
 
         Bukkit.getScheduler().runTaskAsynchronously(Sauron.getInstance(), new Runnable() {
             @Override
@@ -296,7 +300,6 @@ public class Database {
                 }
             }
         });
-
 
     }
 }

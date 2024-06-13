@@ -136,8 +136,8 @@ public class TrackedItem {
             return;
         }
 
-        Timestamp itemLastUpdate = this.getLastUpdateItem();
-        if(itemLastUpdate.before(CrashHandler.oldestItemUpdated)) CrashHandler.oldestItemUpdated = itemLastUpdate;
+
+        CrashHandler.check(this);
 
         Log.console("Begin updating UUID " + this.getOriginalID() + " ...", Log.Level.DEBUG);
         // Asynchronously check if the item is blacklisted or duplicated

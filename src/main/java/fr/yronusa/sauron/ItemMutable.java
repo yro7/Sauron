@@ -1,9 +1,10 @@
 package fr.yronusa.sauron;
 
+import de.tr7zw.nbtapi.NBT;
+import de.tr7zw.nbtapi.iface.ReadWriteNBT;
 import fr.yronusa.sauron.Config.Config;
 import fr.yronusa.sauron.Event.IllegalItemDetectedEvent;
 import fr.yronusa.sauron.Event.ItemUpdateDateEvent;
-import fr.yronusa.sauron.SafeNBTAPI.SafeNBT;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -11,7 +12,6 @@ import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.util.io.BukkitObjectOutputStream;
 import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
 
@@ -57,13 +57,13 @@ public class ItemMutable {
         return true;
     }
     public Timestamp getLastUpdate(){
-        SafeNBT nbt = SafeNBT.get(this.getItem());
-        if(nbt.hasKey("sauron_date")){
-            return Timestamp.valueOf(nbt.getString("sauron_date"));
+      //  SafeNBT nbt = SafeNBT.get(this.getItem());
+        ReadWriteNBT nbt2 = NBT.itemStackToNBT(this.getItem());
+        if(this.hasTrackingID()){
+            return Timestamp.valueOf(nbt2.getCompound("tag").getString("sauron_date"));
         }
         else{
             Log.console("Error: the item is not tracked.", Log.Level.HIGH);
-
         }
 
         return null;
@@ -91,8 +91,16 @@ public class ItemMutable {
 
 
     public UUID getID(){
-        SafeNBT nbt = SafeNBT.get(this.item);
-        return UUID.fromString(nbt.getString("sauron_id"));
+        //  SafeNBT nbt = SafeNBT.get(this.getItem());
+        ReadWriteNBT nbt2 = NBT.itemStackToNBT(this.getItem());
+        if(this.hasTrackingID()){
+           return UUID.fromString(nbt2.getCompound("tag").getString("sauron_id"));
+        }
+        else{
+            Log.console("Error: the item is not tracked.", Log.Level.HIGH);
+        }
+
+        return null;
     }
 
     /**
@@ -101,14 +109,15 @@ public class ItemMutable {
      */
     public boolean hasTrackingID(){
 
-        SafeNBT nbt = SafeNBT.get(this.item);
-        return nbt.hasKey("sauron_id");
+        ReadWriteNBT nbt2 = NBT.itemStackToNBT(this.item);
+        if(nbt2.hasTag("tag") && nbt2.getCompound("tag").hasTag("sauron_id")) return true;
+        return nbt2.hasTag("sauron_id");
     }
 
     public static boolean hasTrackingID(ItemStack item){
         if(item == null) return false;
-        SafeNBT nbt = SafeNBT.get(item);
-        return nbt.hasKey("sauron_id");
+        ReadWriteNBT nbt2 = NBT.itemStackToNBT(item);
+        return nbt2.hasTag("sauron_id");
     }
 
 
@@ -126,26 +135,60 @@ public class ItemMutable {
 
         else{
             ItemStack i = this.getItem();
-            SafeNBT nbt = SafeNBT.get(i);
-            nbt.setString("sauron_id", id.toString());
-            nbt.setString("sauron_date", newDate.toString());
-            this.update(nbt.apply(i).getItemMeta());
+            ReadWriteNBT nbt2 = NBT.itemStackToNBT(i);
+            System.out.println("new item trackable : " + nbt2);
+
+            nbt2.setString("sauron_id", id.toString());
+            nbt2.setString("sauron_date", newDate.toString());
+            System.out.println("§C  SETTING TRACKABLE THE ITEM");
+            System.out.println("new item trackable2 : " + nbt2);
+            this.update(nbt2);
         }
 
 
 
     }
 
-    public void update(ItemMeta newItemMeta){
-        this.item.setItemMeta(newItemMeta);
+    public void update(ReadWriteNBT newItemNBT){
+        System.out.println("§C  UPDATING THE ITEM WITH NBT  " + newItemNBT);
+        ItemMutable item = this;
+        NBT.modify(this.item, nbt -> {
 
+
+            String newID;
+            String newTimeStamp;
+            System.out.println(" item nbt : " + nbt);
+            if (item.hasTrackingID()) {
+                newID = newItemNBT.getCompound("tag").getString("sauron_id");
+                newTimeStamp = newItemNBT.getCompound("tag").getString("sauron_date");
+            }
+            else{
+                newID = newItemNBT.getString("sauron_id");
+                newTimeStamp = newItemNBT.getString("sauron_date");
+            }
+
+            nbt.setString("sauron_date",newTimeStamp);
+            nbt.setString("sauron_id",newID);
+            System.out.println(" item nbt after edit : " + nbt);
+        });
+
+        ReadWriteNBT test = NBT.itemStackToNBT(this.item);
+        System.out.println(" item nbt after edit 2 : " + test);
     }
 
     public Timestamp updateDate(Timestamp newDate) throws IllegalStateException{
         ItemStack i = this.getItem();
-        SafeNBT nbt = SafeNBT.get(i);
-        nbt.setString("sauron_date", newDate.toString());
-        this.update(nbt.apply(i).getItemMeta());
+     //   SafeNBT nbt = SafeNBT.get(i);
+        ReadWriteNBT nbt2 = NBT.itemStackToNBT(i);
+
+        if(this.hasTrackingID()){
+            nbt2.getCompound("tag").setString("sauron_date",newDate.toString());
+        }
+        else{
+            nbt2.setString("sauron_date", newDate.toString());
+        }
+
+        this.update(nbt2);
 
         ItemUpdateDateEvent updateDateEvent = new ItemUpdateDateEvent(this);
         Bukkit.getPluginManager().callEvent(updateDateEvent);
@@ -177,9 +220,9 @@ public class ItemMutable {
 
     public void changeUUID(UUID uuid){
         ItemStack i = this.getItem();
-        SafeNBT nbt = SafeNBT.get(i);
-        nbt.setString("sauron_id", uuid.toString());
-        this.update(nbt.apply(i).getItemMeta());
+        ReadWriteNBT nbt2 = NBT.itemStackToNBT(i);
+        nbt2.setString("sauron_id", uuid.toString());
+        this.update(nbt2);
     }
 
     public static String itemStackArrayToBase64(ItemStack[] items) throws IllegalStateException {

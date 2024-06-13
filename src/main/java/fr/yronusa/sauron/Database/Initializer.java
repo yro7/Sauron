@@ -24,6 +24,7 @@ public class Initializer {
             String path = Sauron.getInstance().getDataFolder().getAbsolutePath();
             yield "jdbc:sqlite:" + path + ".db";
         }
+        case mysql -> "jdbc:mysql://" + databaseHost + ":" + databasePort + "/" + "?useSSL=false";
         default -> "jdbc:" + databaseType + "://"
                 + databaseHost + ":" + databasePort + "/"+ "?useSSL=false";
     };
@@ -45,7 +46,6 @@ public class Initializer {
 
     public static boolean initializeDatabase() {
         try  {
-
             if(!canConnectToServer()){
                 System.out.println("[Sauron] Database connexion failed. Please, check credentials in config file.");
                 System.out.println("[Sauron] Database update is OFF, but items will still be tracked according to TrackingRules, and illegals items will still be cleared.");

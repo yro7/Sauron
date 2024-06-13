@@ -34,6 +34,7 @@ public class Tracker implements org.bukkit.event.Listener {
         ItemMutable i = new ItemMutable(item, inventory);
 
         if(i.hasTrackingID()){
+            System.out.println("has tracking id ouloulou");
             new TrackedItem(i).update();
             return;
         }
@@ -69,6 +70,9 @@ public class Tracker implements org.bukkit.event.Listener {
         Inventory inv = p.getInventory();
         int slot = e.getNewSlot();
         execute(inv, inv.getItem(slot));
+        System.out.println("has NOTTT AdDDZ");
+
+
     }
 
     /**

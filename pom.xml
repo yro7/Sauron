@@ -23,7 +23,7 @@
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>2.3.1</version>
                 <configuration>
-                    <outputDirectory>/home/yro/Spigot/plugins/</outputDirectory>
+                    <outputDirectory>/home/yro/Spigot/1.12/plugins/</outputDirectory>
                 </configuration>
             </plugin>
             <plugin>
@@ -83,16 +83,15 @@
 
     <dependencies>
         <dependency>
-            <groupId>de.tr7zw</groupId>
-            <artifactId>item-nbt-api-plugin</artifactId>
-            <version>2.12.3</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
             <groupId>io.papermc.paper</groupId>
             <artifactId>paper-api</artifactId>
             <version>1.19.4-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>de.tr7zw</groupId>
+            <artifactId>item-nbt-api-plugin</artifactId>
+            <version>2.12.4</version>
         </dependency>
         <dependency>
             <groupId>com.github.hamza-cskn.obliviate-invs</groupId>

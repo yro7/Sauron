@@ -97,6 +97,9 @@ public class Config {
 
     private static void loadDatabase() {
         databaseType = Database.TYPE.valueOf(get("database.type").toLowerCase());
+        System.out.println("prout database type : " + databaseType);
+        System.out.println("prout database type string : " + get("database.type").toLowerCase());
+
         databaseHost = get("database.host");
         databasePort = config.getInt("database.port");
         databaseName = get("database.database");

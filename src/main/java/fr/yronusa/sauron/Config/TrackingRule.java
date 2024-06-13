@@ -13,6 +13,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 
 public class TrackingRule implements Predicate<ItemStack> {
+
     static ConfigurationSection configSection;
     List<String> contains;
     List<Material> materials;
