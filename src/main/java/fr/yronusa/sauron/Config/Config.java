@@ -74,12 +74,12 @@ public class Config {
 
 
     public static FileConfiguration getConfig(){
-        return config;
+        return Sauron.getInstance().getConfig();
     }
 
     public static boolean load(){
         try{
-            config = Sauron.getInstance().getConfig();;
+            config = Sauron.getInstance().getConfig();
             loadMessages();
             loadDatabase();
             loadSettings();

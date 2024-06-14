@@ -39,6 +39,7 @@ public final class Sauron extends JavaPlugin {
     public void onEnable() {
         Sauron.instance = this;
 
+
         Config.load();
         registerEvents();
         registerCommands();
@@ -70,6 +71,9 @@ public final class Sauron extends JavaPlugin {
     @Override
     public void onDisable() {
         // Plugin shutdown logic
+        System.out.println(getConfig().saveToString());
+        getInstance().saveConfig();
+        System.out.println(getConfig().saveToString());
         CrashHandler.close();
 
         Log.console("Closing database connection.", Log.Level.HIGH);

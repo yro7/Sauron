@@ -37,7 +37,7 @@ public class CrashHandler {
         }
 
         oldestItemUpdated = Sauron.getActualDate();
-        System.out.println("Settign crash handler crashed to true");
+        System.out.println("Setting crash handler crashed to true.");
         config.set("crash-handler.crashed", true);
         Config.getConfig().set("crash-handler.oldest-item", oldestItemUpdated.toString());
         Sauron.getInstance().saveConfig();

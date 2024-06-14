@@ -214,7 +214,6 @@ public class ItemMutable {
         this.item = new ItemStack(Material.AIR);
         this.item.setType(Material.AIR);
         this.item.setAmount(0);
-        System.out.println("counter : " + counter);
         return counter;
     }
 
@@ -267,8 +266,9 @@ public class ItemMutable {
 
         // Else, try to find the nearest player in a 32 blocks radius.
         Location inventoryLocation = inventory.getLocation();
-        Optional<Player> optionalPlayer = inventoryLocation.getWorld().getNearbyEntitiesByType(Player.class, inventoryLocation, 32)
-                .stream()
+        Optional<Player> optionalPlayer = Arrays.stream(inventoryLocation.getChunk().getEntities())
+                .filter(e -> (e instanceof Player))
+                .map(e -> (Player) e)
                 .min(Comparator.comparingDouble(o -> inventoryLocation.distance(o.getLocation())));
         if(optionalPlayer.isPresent()) return optionalPlayer.get();;
 
