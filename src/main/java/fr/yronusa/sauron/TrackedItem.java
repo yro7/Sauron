@@ -81,6 +81,7 @@ public class TrackedItem {
             TrackedItem trackedItem = new TrackedItem(item);
             trackedItem.update();
             return trackedItem;
+
         } else {
             // If no tracking ID exists, generate a new one and start tracking
             UUID originalID = UUID.randomUUID();

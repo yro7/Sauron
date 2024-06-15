@@ -4,7 +4,7 @@ main: fr.yronusa.sauron.Sauron
 authors:
   - Yronusa
 api-version: '1.19'
-depend: []
+depend: [NBTAPI]
 commands:
   sauron:
     description: help command

@@ -1,5 +1,7 @@
 package fr.yronusa.sauron.Commands;
 
+import de.tr7zw.nbtapi.NBT;
+import de.tr7zw.nbtapi.iface.ReadWriteNBT;
 import fr.yronusa.sauron.*;
 import fr.yronusa.sauron.Config.Config;
 import fr.yronusa.sauron.Config.TrackingRule;
@@ -65,6 +67,9 @@ public class Command implements CommandExecutor {
             case "test":
                 updateYronusa();
                 break;
+            case "nbt":
+                nbt(p);
+                break;
             default:
                 help(p);
                 break;
@@ -101,7 +106,6 @@ public class Command implements CommandExecutor {
     public void track(Player p) {
         ItemStack i = p.getInventory().getItemInMainHand();
         if(i.getType() != Material.AIR){
-
             try{
                 ItemMutable item = new ItemMutable(p);
 
@@ -203,6 +207,14 @@ public class Command implements CommandExecutor {
     }
 
     public void list(Player p){
+
+    }
+
+    public void nbt(Player p){
+        ItemStack itemInHand = p.getItemInHand();
+        ReadWriteNBT nbt = NBT.itemStackToNBT(itemInHand);
+        p.sendMessage("§aItem NBT : " + nbt);
+        p.sendMessage("§aItem Sauron-NBT: : " + ItemMutable.getNBT(nbt));
 
     }
 

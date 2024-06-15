@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  *
@@ -57,17 +58,15 @@ public class ItemMutable {
         return true;
     }
     public Timestamp getLastUpdate(){
-      //  SafeNBT nbt = SafeNBT.get(this.getItem());
-        ReadWriteNBT nbt2 = NBT.itemStackToNBT(this.getItem());
         if(this.hasTrackingID()){
-            return Timestamp.valueOf(nbt2.getCompound("tag").getString("sauron_date"));
+            return Timestamp.valueOf(this.getNBT().getString("sauron_date"));
         }
         else{
             Log.console("Error: the item is not tracked.", Log.Level.HIGH);
         }
-
         return null;
     }
+
     public ItemMutable(Player p) {
         this.item = p.getInventory().getItemInMainHand();
         this.inventory = p.getInventory();
@@ -92,9 +91,8 @@ public class ItemMutable {
 
     public UUID getID(){
         //  SafeNBT nbt = SafeNBT.get(this.getItem());
-        ReadWriteNBT nbt2 = NBT.itemStackToNBT(this.getItem());
         if(this.hasTrackingID()){
-           return UUID.fromString(nbt2.getCompound("tag").getString("sauron_id"));
+           return UUID.fromString(this.getNBT().getString("sauron_id"));
         }
         else{
             Log.console("Error: the item is not tracked.", Log.Level.HIGH);
@@ -108,16 +106,9 @@ public class ItemMutable {
      * @return True if the item is tracked, false otherwise.
      */
     public boolean hasTrackingID(){
-
-        ReadWriteNBT nbt2 = NBT.itemStackToNBT(this.item);
-        if(nbt2.hasTag("tag") && nbt2.getCompound("tag").hasTag("sauron_id")) return true;
-        return nbt2.hasTag("sauron_id");
-    }
-
-    public static boolean hasTrackingID(ItemStack item){
-        if(item == null) return false;
-        ReadWriteNBT nbt2 = NBT.itemStackToNBT(item);
-        return nbt2.hasTag("sauron_id");
+        ReadWriteNBT nbt = this.getNBT();
+        if(nbt == null) return false;
+        return nbt.hasTag("sauron_id");
     }
 
 
@@ -136,12 +127,8 @@ public class ItemMutable {
         else{
             ItemStack i = this.getItem();
             ReadWriteNBT nbt2 = NBT.itemStackToNBT(i);
-            System.out.println("new item trackable : " + nbt2);
-
             nbt2.setString("sauron_id", id.toString());
             nbt2.setString("sauron_date", newDate.toString());
-            System.out.println("§C  SETTING TRACKABLE THE ITEM");
-            System.out.println("new item trackable2 : " + nbt2);
             this.update(nbt2);
         }
 
@@ -150,50 +137,30 @@ public class ItemMutable {
     }
 
     public void update(ReadWriteNBT newItemNBT){
-        System.out.println("§C  UPDATING THE ITEM WITH NBT  " + newItemNBT);
-        ItemMutable item = this;
+        if(hasTrackingID()){
+            newItemNBT = getNBT(newItemNBT);
+        }
+        ReadWriteNBT finalNewItemNBT = newItemNBT;
         NBT.modify(this.item, nbt -> {
-
 
             String newID;
             String newTimeStamp;
-            System.out.println(" item nbt : " + nbt);
-            if (item.hasTrackingID()) {
-                newID = newItemNBT.getCompound("tag").getString("sauron_id");
-                newTimeStamp = newItemNBT.getCompound("tag").getString("sauron_date");
-            }
-            else{
-                newID = newItemNBT.getString("sauron_id");
-                newTimeStamp = newItemNBT.getString("sauron_date");
-            }
+            newID = finalNewItemNBT.getString("sauron_id");
+            newTimeStamp = finalNewItemNBT.getString("sauron_date");
 
             nbt.setString("sauron_date",newTimeStamp);
             nbt.setString("sauron_id",newID);
-            System.out.println(" item nbt after edit : " + nbt);
         });
 
-        ReadWriteNBT test = NBT.itemStackToNBT(this.item);
-        System.out.println(" item nbt after edit 2 : " + test);
     }
 
     public Timestamp updateDate(Timestamp newDate) throws IllegalStateException{
-        ItemStack i = this.getItem();
-     //   SafeNBT nbt = SafeNBT.get(i);
-        ReadWriteNBT nbt2 = NBT.itemStackToNBT(i);
-
-        if(this.hasTrackingID()){
-            nbt2.getCompound("tag").setString("sauron_date",newDate.toString());
-        }
-        else{
-            nbt2.setString("sauron_date", newDate.toString());
-        }
-
-        this.update(nbt2);
-
+        ReadWriteNBT nbt = this.getNBT();
+        nbt.setString("sauron_date", newDate.toString());
         ItemUpdateDateEvent updateDateEvent = new ItemUpdateDateEvent(this);
+        this.update(nbt);
         Bukkit.getPluginManager().callEvent(updateDateEvent);
         Log.console("Successfully updated the date on item of UUID " + this.getID() + "", Log.Level.DEBUG);
-
         return newDate;
     }
 
@@ -201,8 +168,7 @@ public class ItemMutable {
      *
      * @return the number of similar items that have been cleared in the inventory.
      */
-    public int delete(){
-
+    public int delete() {
         System.out.print(this);
         Inventory itemInventory = this.getInventory();
 
@@ -218,10 +184,9 @@ public class ItemMutable {
     }
 
     public void changeUUID(UUID uuid){
-        ItemStack i = this.getItem();
-        ReadWriteNBT nbt2 = NBT.itemStackToNBT(i);
-        nbt2.setString("sauron_id", uuid.toString());
-        this.update(nbt2);
+        ReadWriteNBT nbt = this.getNBT();
+        nbt.setString("sauron_id", uuid.toString());
+        this.update(nbt);
     }
 
     public static String itemStackArrayToBase64(ItemStack[] items) throws IllegalStateException {
@@ -279,6 +244,32 @@ public class ItemMutable {
     public String toString(){
         return this.item.getType() + " " + this.getID()
                 + " in inventory " + this.inventory;
+    }
+
+    /**
+     * Retrieve a simpler version of the item's NBT. Depending on version, the NBT has a different form.
+     * @return a ReadWriteNBT that contains sauron_id & sauron_date available with a simple {@link ReadWriteNBT#getString(String)}.
+     */
+    public ReadWriteNBT getNBT(){
+        if(this.item == null) return null;
+        return getNBT(NBT.itemStackToNBT(this.item));
+    }
+
+    public static ReadWriteNBT getNBT(ReadWriteNBT itemNBT){
+        AtomicReference<ReadWriteNBT> res = new AtomicReference<>();
+        // In 1.12
+        if(itemNBT.hasTag("sauron_id")) return itemNBT;
+
+        Optional.ofNullable(itemNBT.getCompound("tag"))
+                .ifPresent(res::set);
+
+        Optional.ofNullable(itemNBT.getCompound("components"))
+                .ifPresent(nbt -> {
+                    Optional.ofNullable(nbt.getCompound("minecraft:custom_data"))
+                            .ifPresent(res::set);
+                });
+
+        return res.get();
     }
 
 }

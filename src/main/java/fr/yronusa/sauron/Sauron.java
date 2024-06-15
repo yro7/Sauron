@@ -38,7 +38,7 @@ public final class Sauron extends JavaPlugin {
     @Override
     public void onEnable() {
         Sauron.instance = this;
-
+        saveDefaultConfig();
 
         Config.load();
         registerEvents();

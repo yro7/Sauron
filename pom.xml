@@ -23,7 +23,7 @@
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>2.3.1</version>
                 <configuration>
-                    <outputDirectory>/home/yro/Spigot/1.12/plugins/</outputDirectory>
+                    <outputDirectory>/home/yro/Spigot/1.20/plugins/</outputDirectory>
                 </configuration>
             </plugin>
             <plugin>
@@ -91,7 +91,8 @@
         <dependency>
             <groupId>de.tr7zw</groupId>
             <artifactId>item-nbt-api-plugin</artifactId>
-            <version>2.12.4</version>
+            <version>2.13.0</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.github.hamza-cskn.obliviate-invs</groupId>
