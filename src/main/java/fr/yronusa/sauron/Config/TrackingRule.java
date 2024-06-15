@@ -1,6 +1,7 @@
 package fr.yronusa.sauron.Config;
 
-import fr.yronusa.sauron.SafeNBTAPI.SafeNBT;
+import de.tr7zw.nbtapi.NBT;
+import de.tr7zw.nbtapi.iface.ReadWriteNBT;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemFlag;
@@ -108,18 +109,18 @@ public class TrackingRule implements Predicate<ItemStack> {
 
     public static boolean hasNbt(ItemStack i, List<String> nbt){
         if(nbt.isEmpty()) return true;
-        SafeNBT itemNbt = SafeNBT.get(i);
+        ReadWriteNBT itemNbt = NBT.itemStackToNBT(i);
         for(String s : nbt){
-            if(itemNbt.hasKey(s)) return true;
+            if(itemNbt.hasTag(s)) return true;
         }
         return false;
     }
 
     public static boolean hasKeyValueNbt(ItemStack i, HashMap<String,String> nbt){
         if(nbt.isEmpty()) return true;
-        SafeNBT itemNbt = SafeNBT.get(i);
+        ReadWriteNBT itemNbt = NBT.itemStackToNBT(i);
         for(String s : nbt.keySet()){
-            if(!itemNbt.hasKey(s) || getKey(itemNbt, s).toString().equals(nbt.get(s))) return false;
+            if(!itemNbt.hasTag(s) || getKey(itemNbt, s).toString().equals(nbt.get(s))) return false;
         }
 
         return true;
@@ -133,13 +134,13 @@ public class TrackingRule implements Predicate<ItemStack> {
 
 
 
-    public static Object getKey(SafeNBT nbt, String key) {
+    public static Object getKey(ReadWriteNBT nbt, String key) {
         Object res = null;
         try {
             res = nbt.getString(key);
         } catch (Exception e1) {
             try {
-                res = nbt.getInt(key);
+                res = nbt.getInteger(key);
             } catch (Exception e2) {
                 try {
                   //  res = nbt.getDouble(key);

@@ -20,7 +20,7 @@ import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.UUID;
 
-import static fr.yronusa.sauron.Tracker.updateYronusa;
+import static fr.yronusa.sauron.Tracker.updateTest;
 
 public class Command implements CommandExecutor {
 
@@ -65,7 +65,7 @@ public class Command implements CommandExecutor {
                 tracker(p);
                 break;
             case "test":
-                updateYronusa();
+                updateTest(p);
                 break;
             case "nbt":
                 nbt(p);
@@ -212,6 +212,10 @@ public class Command implements CommandExecutor {
 
     public void nbt(Player p){
         ItemStack itemInHand = p.getItemInHand();
+        if(itemInHand == null) {
+            p.sendMessage(Config.trackEmpty);
+            return;
+        }
         ReadWriteNBT nbt = NBT.itemStackToNBT(itemInHand);
         p.sendMessage("§aItem NBT : " + nbt);
         p.sendMessage("§aItem Sauron-NBT: : " + ItemMutable.getNBT(nbt));

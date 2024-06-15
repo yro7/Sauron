@@ -89,12 +89,10 @@ public class Tracker implements org.bukkit.event.Listener {
             updateInventorySafely(container.getInventory());
         }
     }
-    public static void updateYronusa(){
+    public static void updateTest(Player p){
         new BukkitRunnable() {
             @Override
             public void run() {
-                Player p = Bukkit.getPlayer("Yronusa2000");
-                assert p != null;
                 System.out.println("SAURON DEBUG: UPDATE YRONUSA...");
                 updateInventorySafely(p.getInventory());
             }

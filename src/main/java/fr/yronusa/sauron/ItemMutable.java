@@ -90,7 +90,6 @@ public class ItemMutable {
 
 
     public UUID getID(){
-        //  SafeNBT nbt = SafeNBT.get(this.getItem());
         if(this.hasTrackingID()){
            return UUID.fromString(this.getNBT().getString("sauron_id"));
         }
@@ -187,6 +186,7 @@ public class ItemMutable {
         ReadWriteNBT nbt = this.getNBT();
         nbt.setString("sauron_id", uuid.toString());
         this.update(nbt);
+
     }
 
     public static String itemStackArrayToBase64(ItemStack[] items) throws IllegalStateException {
@@ -257,12 +257,14 @@ public class ItemMutable {
 
     public static ReadWriteNBT getNBT(ReadWriteNBT itemNBT){
         AtomicReference<ReadWriteNBT> res = new AtomicReference<>();
-        // In 1.12
         if(itemNBT.hasTag("sauron_id")) return itemNBT;
+
+        // In 1.12
 
         Optional.ofNullable(itemNBT.getCompound("tag"))
                 .ifPresent(res::set);
 
+        // In 1.20+
         Optional.ofNullable(itemNBT.getCompound("components"))
                 .ifPresent(nbt -> {
                     Optional.ofNullable(nbt.getCompound("minecraft:custom_data"))
