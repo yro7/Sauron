@@ -271,6 +271,13 @@ public class ItemMutable {
                             .ifPresent(res::set);
                 });
 
+        // In 1.20+ on Paper
+        Optional.ofNullable(itemNBT.getCompound("components"))
+                .ifPresent(nbt -> {
+                    Optional.ofNullable(nbt.getCompound("minecraft:custom_name"))
+                            .ifPresent(res::set);
+                });
+
         return res.get();
     }
 

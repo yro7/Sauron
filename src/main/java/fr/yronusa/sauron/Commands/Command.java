@@ -212,7 +212,7 @@ public class Command implements CommandExecutor {
 
     public void nbt(Player p){
         ItemStack itemInHand = p.getItemInHand();
-        if(itemInHand == null) {
+        if(itemInHand.getType() == Material.AIR) {
             p.sendMessage(Config.trackEmpty);
             return;
         }
