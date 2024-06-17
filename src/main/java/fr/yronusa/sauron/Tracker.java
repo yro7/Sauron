@@ -1,6 +1,8 @@
 package fr.yronusa.sauron;
 
 import fr.yronusa.sauron.Config.Config;
+import fr.yronusa.sauron.Event.BlacklistedItemDetectedEvent;
+import fr.yronusa.sauron.Event.IllegalItemDetectedEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
@@ -34,13 +36,18 @@ public class Tracker implements org.bukkit.event.Listener {
         ItemMutable i = new ItemMutable(item, inventory);
 
         if(i.hasTrackingID()){
-            System.out.println("has tracking id ouloulou");
             new TrackedItem(i).update();
             return;
         }
 
         if(i.shouldBeTrack()){
             TrackedItem.startTracking(i);
+        }
+
+        if(Config.enableIllegalItemsLookup && Config.itemStackIsIllegal(i)){
+            IllegalItemDetectedEvent illegalDetectEvent = new IllegalItemDetectedEvent(i);
+            Bukkit.getScheduler().runTask(Sauron.getInstance(), () -> Bukkit.getPluginManager().callEvent(illegalDetectEvent));
+            return;
         }
 
 
@@ -70,9 +77,6 @@ public class Tracker implements org.bukkit.event.Listener {
         Inventory inv = p.getInventory();
         int slot = e.getNewSlot();
         execute(inv, inv.getItem(slot));
-        System.out.println("has NOTTT AdDDZ");
-
-
     }
 
     /**
@@ -93,7 +97,7 @@ public class Tracker implements org.bukkit.event.Listener {
         new BukkitRunnable() {
             @Override
             public void run() {
-                System.out.println("SAURON DEBUG: UPDATE YRONUSA...");
+                System.out.println("SAURON DEBUG: UPDATE PLAYER " + p.getName() + " ...");
                 updateInventorySafely(p.getInventory());
             }
         }.runTaskTimer(Sauron.getInstance(), 0L, 20L*4);
@@ -192,6 +196,13 @@ public class Tracker implements org.bukkit.event.Listener {
                         position.set(counter);
                         return;
                     }
+
+                    if(Config.enableIllegalItemsLookup && Config.itemStackIsIllegal(itemToCheck)){
+                        IllegalItemDetectedEvent illegalDetectEvent = new IllegalItemDetectedEvent(itemToCheck);
+                        Bukkit.getScheduler().runTask(Sauron.getInstance(), () -> Bukkit.getPluginManager().callEvent(illegalDetectEvent));
+                        return;
+                    }
+
                     counter++;
                     itemToCheck = new ItemMutable(inventory.getItem(counter),inventory);
                 }

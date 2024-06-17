@@ -1,6 +1,7 @@
 package fr.yronusa.sauron.Config;
 
 import fr.yronusa.sauron.Database.Database;
+import fr.yronusa.sauron.ItemMutable;
 import fr.yronusa.sauron.Log;
 import fr.yronusa.sauron.Sauron;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -147,8 +148,13 @@ public class Config {
     public static boolean itemStackIsToTrack(ItemStack item) {
         return itemStackMatchesRules(item, Config.trackingRules);
     }
+
     public static boolean itemStackIsIllegal(ItemStack item){
         return itemStackMatchesRules(item, Config.illegalItemRules);
+    }
+
+    public static boolean itemStackIsIllegal(ItemMutable item){
+        return itemStackMatchesRules(item.item, Config.illegalItemRules);
     }
 
     public static boolean itemStackMatchesRules(ItemStack item, List<TrackingRule> list){

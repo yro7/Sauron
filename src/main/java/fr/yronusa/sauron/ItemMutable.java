@@ -32,8 +32,8 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class ItemMutable {
 
-    ItemStack item;
-    Inventory inventory;
+    public ItemStack item;
+    public Inventory inventory;
 
 
     public ItemMutable(ItemStack item, Inventory inventory) {

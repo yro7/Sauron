@@ -16,6 +16,7 @@ import java.util.function.Predicate;
 public class TrackingRule implements Predicate<ItemStack> {
 
     static ConfigurationSection configSection;
+    String name;
     List<String> contains;
     List<Material> materials;
     List<ItemFlag> flags;
@@ -25,13 +26,14 @@ public class TrackingRule implements Predicate<ItemStack> {
 
     public TrackingRule(List<String> contains, List<Material> materials,
                         List<ItemFlag> flags, List<String> nbt,
-                        HashMap<String, String> nbtEquals, Boolean isUnbreakable) {
+                        HashMap<String, String> nbtEquals, Boolean isUnbreakable, String name) {
         this.contains = contains;
         this.materials = materials;
         this.flags = flags;
         this.nbt = nbt;
         this.nbtEquals = nbtEquals;
         this.isUnbreakable = isUnbreakable;
+        this.name = name;
     }
 
     public static List<TrackingRule> getTrackingRulesFromConfig(String path) {
@@ -45,6 +47,7 @@ public class TrackingRule implements Predicate<ItemStack> {
     }
 
     public TrackingRule(String s) {
+        this.name = s;
         this.materials = new ArrayList<>();
         this.flags = new ArrayList<>();
         this.nbt = new ArrayList<>();
@@ -108,11 +111,14 @@ public class TrackingRule implements Predicate<ItemStack> {
     }
 
     public static boolean hasNbt(ItemStack i, List<String> nbt){
+
         if(nbt.isEmpty()) return true;
+
         ReadWriteNBT itemNbt = NBT.itemStackToNBT(i);
         for(String s : nbt){
             if(itemNbt.hasTag(s)) return true;
         }
+
         return false;
     }
 
@@ -129,7 +135,7 @@ public class TrackingRule implements Predicate<ItemStack> {
     public static boolean isUnbreakable(ItemStack i, Boolean isUnbreakable){
         if(isUnbreakable == null) return true;
 
-        return(i.getItemMeta().isUnbreakable() == isUnbreakable.booleanValue());
+        return(i.getItemMeta().isUnbreakable() == isUnbreakable);
     }
 
 

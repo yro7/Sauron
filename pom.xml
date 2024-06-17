@@ -23,7 +23,7 @@
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>2.3.1</version>
                 <configuration>
-                    <outputDirectory>/home/yro/Spigot/1.20/plugins/</outputDirectory>
+                    <outputDirectory>/home/yroo/Spigot/1.12/plugins/</outputDirectory>
                 </configuration>
             </plugin>
             <plugin>
