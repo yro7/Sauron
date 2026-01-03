@@ -10,3 +10,4 @@ By comparing the timestamp-UUID association of the item with the one in the data
 Sauron can help you refund your players items after a bug, without having the doubt that maybe they hid the item from your sight.
 Any refunded item is blacklisted and will be cleared (and logged) if used again.
 
+<img width="1024" height="559" alt="image" src="https://github.com/user-attachments/assets/a883b6d9-cc4c-47a6-a70e-09b28cae05b8" />
